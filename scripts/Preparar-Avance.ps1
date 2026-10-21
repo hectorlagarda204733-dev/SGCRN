@@ -15,7 +15,7 @@ try {
     $env:MYSQL_PWD = [Net.NetworkCredential]::new('', $AdminPassword).Password
     $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
-    foreach ($file in @('001_catalogo.sql', '002_productos_ejemplo.sql')) {
+    foreach ($file in @('001_catalogo.sql', '002_productos_ejemplo.sql', '003_separar_catalogo_inventario.sql')) {
         $path = (Join-Path $root "database/migrations/$file").Replace('\', '/')
         & $MySqlPath --host=localhost --user=$AdminUser --default-character-set=utf8mb4 --execute="source $path"
         if ($LASTEXITCODE -ne 0) { throw "Falló la migración $file." }
