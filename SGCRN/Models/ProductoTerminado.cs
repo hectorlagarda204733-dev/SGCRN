@@ -8,8 +8,6 @@ public class ProductoTerminado
     public string? ImagenUrl { get; set; }
     public string UnidadMedida { get; set; } = "";
     public decimal PrecioSugerido { get; set; }
-    public decimal StockActual { get; set; }
-    public decimal StockMinimo { get; set; }
     public bool Activo { get; set; }
     public DateTime CreadoEn { get; set; }
     public DateTime ActualizadoEn { get; set; }

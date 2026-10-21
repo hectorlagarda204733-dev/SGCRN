@@ -9,7 +9,7 @@ public sealed class ProductoRepository(DbConnectionFactory connectionFactory)
     {
         const string sql = """
             SELECT Id, Nombre, Descripcion, ImagenUrl, UnidadMedida, PrecioSugerido,
-                   StockActual, StockMinimo, Activo, CreadoEn, ActualizadoEn
+                   Activo, CreadoEn, ActualizadoEn
             FROM ProductosTerminados
             WHERE (@Buscar = '' OR LOCATE(@Buscar, Nombre) > 0)
               AND (@Activo IS NULL OR Activo = @Activo)
@@ -29,7 +29,7 @@ public sealed class ProductoRepository(DbConnectionFactory connectionFactory)
     {
         const string sql = """
             SELECT Id, Nombre, Descripcion, ImagenUrl, UnidadMedida, PrecioSugerido,
-                   StockActual, StockMinimo, Activo, CreadoEn, ActualizadoEn
+                   Activo, CreadoEn, ActualizadoEn
             FROM ProductosTerminados WHERE Id = @Id
             """;
         await using var connection = connectionFactory.Create();
@@ -44,17 +44,15 @@ public sealed class ProductoRepository(DbConnectionFactory connectionFactory)
         const string sql = """
             INSERT INTO ProductosTerminados
                 (Nombre, Descripcion, ImagenUrl, UnidadMedida, PrecioSugerido,
-                 StockActual, StockMinimo, Activo, CreadoEn, ActualizadoEn)
+                 Activo, CreadoEn, ActualizadoEn)
             VALUES (@Nombre, @Descripcion, @ImagenUrl, @UnidadMedida, @PrecioSugerido,
-                    @StockActual, @StockMinimo, @Activo, NOW(), NOW())
+                    @Activo, NOW(), NOW())
             """;
         try
         {
             await using var connection = connectionFactory.Create();
             await using var command = new MySqlCommand(sql, connection);
             AddProductParameters(command, producto);
-            command.Parameters.AddWithValue("@StockActual", producto.StockActual);
-            command.Parameters.AddWithValue("@StockMinimo", producto.StockMinimo);
             command.Parameters.AddWithValue("@Activo", producto.Activo);
             await command.ExecuteNonQueryAsync();
             return checked((long)command.LastInsertedId);
@@ -113,8 +111,6 @@ public sealed class ProductoRepository(DbConnectionFactory connectionFactory)
         ImagenUrl = reader.IsDBNull(reader.GetOrdinal("ImagenUrl")) ? null : reader.GetString("ImagenUrl"),
         UnidadMedida = reader.GetString("UnidadMedida"),
         PrecioSugerido = reader.GetDecimal("PrecioSugerido"),
-        StockActual = reader.GetDecimal("StockActual"),
-        StockMinimo = reader.GetDecimal("StockMinimo"),
         Activo = reader.GetBoolean("Activo"),
         CreadoEn = reader.GetDateTime("CreadoEn"),
         ActualizadoEn = reader.GetDateTime("ActualizadoEn")

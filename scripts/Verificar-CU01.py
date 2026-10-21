@@ -63,6 +63,9 @@ status, page, _ = request("/")
 check(status == 200 and "Catálogo de productos" in page, "Inicio y consulta general")
 status, page, _ = request("/lib/bootstrap/bootstrap.min.css")
 check(status == 200 and "Bootstrap" in page, "Estilos disponibles localmente")
+status, page, _ = request("/Producto/Create")
+check(status == 200 and "stock" not in page.lower() and "existencias" not in page.lower(),
+      "Registro limitado a los datos del catálogo")
 status, _, _ = request("/Producto/Create", product_fields())
 check(status == 400, "Formulario sin token antifalsificación rechazado")
 
@@ -78,7 +81,7 @@ status, page, _ = post("/Producto/Create", product_fields(**{
 check(status == 200 and "hasta dos decimales" in page and "comience con http" in page,
       "Decimales e imagen inválida rechazados")
 status, page, final_url = post("/Producto/Create", product_fields(**{
-    "StockActual": "999", "StockMinimo": "888", "Activo": "false",
+    "Activo": "false",
 }))
 check(status == 200 and "Producto registrado correctamente" in page
       and not final_url.endswith("Create"), "Registro exitoso y redirección al catálogo")
@@ -91,12 +94,16 @@ check(status == 200 and name in page and match is not None and "1 resultado(s)" 
 product_id = match.group(1)
 status, page, _ = request("/Producto/Details/" + product_id)
 check(status == 200 and name in page and "55.25" in page, "Consulta individual conserva datos registrados")
-check("Activo" in page and page.count('>0.000</dd>') == 2,
-      "Negocio establece activo y stocks en cero aunque el POST envíe otros valores")
+check("Activo" in page, "Negocio establece estado activo aunque el POST envíe otro valor")
+check("stock" not in page.lower() and "existencias" not in page.lower(),
+      "Consulta individual muestra únicamente información del catálogo")
 status, page, _ = post("/Producto/Create", product_fields())
 check(status == 200 and "Ya existe un producto con ese nombre" in page, "Nombre duplicado rechazado")
 
 edit_path = "/Producto/Edit/" + product_id
+status, page, _ = request(edit_path)
+check(status == 200 and "stock" not in page.lower() and "existencias" not in page.lower(),
+      "Edición limitada a los datos del catálogo")
 status, _, _ = request(edit_path, product_fields())
 check(status == 400, "Edición sin token antifalsificación rechazada")
 status, page, _ = post(edit_path, product_fields(**{"PrecioSugerido": "-1"}))
@@ -127,11 +134,10 @@ status, page, _ = post("/Producto/Create", product_fields())
 check(status == 200 and "incluso si está inactivo" in page, "Nombre inactivo también impide duplicados")
 status, page, _ = post(delete_path, {})
 check(status == 200 and "ya está inactivo o no existe" in page, "Baja repetida informa el estado del producto")
-status, page, _ = post(edit_path, product_fields(**{"PrecioSugerido": "60.50", "Activo": "true", "StockActual": "999"}))
+status, page, _ = post(edit_path, product_fields(**{"PrecioSugerido": "60.50", "Activo": "true"}))
 check(status == 200 and "Producto actualizado correctamente" in page, "Edición de información del producto inactivo")
 status, page, _ = request("/Producto/Details/" + product_id)
-check(status == 200 and "Inactivo" in page and page.count('>0.000</dd>') == 2,
-      "Edición conserva estado inactivo y existencias")
+check(status == 200 and "Inactivo" in page, "Edición conserva estado inactivo")
 status, _, _ = request("/Producto/Details/9223372036854775807")
 check(status == 404, "Producto inexistente devuelve 404")
 status, page, _ = request("/Home/Error")

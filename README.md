@@ -40,7 +40,7 @@ Aplicación local desarrollada con **ASP.NET Core 10 MVC, C#, MySqlConnector (AD
 
 ### Configuración manual
 
-Ejecuta en MySQL Workbench `database/migrations/001_catalogo.sql` y después `002_productos_ejemplo.sql`. Configura un usuario con permisos SELECT, INSERT y UPDATE sobre `SGCRN_Avance01` y registra su conexión local:
+Ejecuta en MySQL Workbench los scripts de `database/migrations` en orden: `001_catalogo.sql`, `002_productos_ejemplo.sql` y `003_separar_catalogo_inventario.sql`. El tercero adapta las bases creadas con versiones anteriores y puede repetirse. Configura un usuario con permisos SELECT, INSERT y UPDATE sobre `SGCRN_Avance01` y registra su conexión local:
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:SGCRN" "Server=localhost;Port=3306;Database=SGCRN_Avance01;User=TU_USUARIO;Password=TU_CLAVE" --project SGCRN/SGCRN.csproj
@@ -65,7 +65,7 @@ scripts/
   Verificar-CU01.py        Prueba integrada HTTP contra la aplicación iniciada
 ```
 
-La aplicación utiliza el patrón **Modelo-Vista-Controlador**. `ProductoController` recibe las solicitudes, valida el modelo y devuelve vistas o redirecciones. `ProductoTerminadoService` aplica las reglas del catálogo: validaciones de entrada, estado activo y stocks iniciales en cero, nombres únicos y baja lógica. `ProductoRepository` ejecuta el SQL parametrizado y `DbConnectionFactory` abre las conexiones a MySQL.
+La aplicación utiliza el patrón **Modelo-Vista-Controlador**. `ProductoController` recibe las solicitudes, valida el modelo y devuelve vistas o redirecciones. `ProductoTerminadoService` aplica las reglas del catálogo: validaciones de entrada, estado activo inicial, nombres únicos y baja lógica. `ProductoRepository` ejecuta el SQL parametrizado y `DbConnectionFactory` abre las conexiones a MySQL.
 
 ```text
 Vista Razor → ProductoController → ProductoTerminadoService → ProductoRepository → MySQL

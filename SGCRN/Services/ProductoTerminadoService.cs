@@ -15,8 +15,6 @@ public sealed class ProductoTerminadoService(ProductoRepository productoReposito
     {
         var producto = BuildProduct(input);
         producto.Activo = true;
-        producto.StockActual = 0;
-        producto.StockMinimo = 0;
 
         try
         {
@@ -35,7 +33,7 @@ public sealed class ProductoTerminadoService(ProductoRepository productoReposito
 
         try
         {
-            // La edición del catálogo conserva existencias y estado.
+            // La edición de información conserva el estado del producto.
             if (!await productoRepository.UpdateAsync(producto))
                 throw new InvalidOperationException("El producto ya no existe.");
         }
