@@ -1,5 +1,4 @@
-@page "{id:long}"
-@model SGCRN.Pages.ProductosTerminados.DeleteModel
+@model ProductoTerminado
 @{
     ViewData["Title"] = "Baja lógica de producto";
 }
@@ -7,13 +6,13 @@
 <h1>Baja lógica de producto</h1>
 <p class="text-muted">Confirma la operación antes de continuar.</p>
 <div class="panel form-panel">
-    <form method="post">
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
         <div asp-validation-summary="All" class="text-danger" role="alert"></div>
-        <p>¿Deseas dar de baja el producto <strong>@Model.Producto.Nombre</strong>?</p>
+        <p>¿Deseas dar de baja el producto <strong>@Model.Nombre</strong>?</p>
         <div class="alert alert-warning">El estado cambiará a <strong>Inactivo</strong>. Su información permanecerá guardada.</div>
         <div class="d-flex justify-content-end gap-2">
-            <a class="btn btn-outline-secondary" asp-page="Index">Cancelar</a>
-            @if (Model.Producto.Activo)
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+            @if (Model.Activo)
             {
                 <button class="btn btn-danger" type="submit">Confirmar baja</button>
             }

@@ -43,16 +43,18 @@ def post(path, fields):
     assert status == 200, (path, status)
     token = re.search(r'name="__RequestVerificationToken"[^>]*value="([^"]+)"', page)
     assert token, "No se encontró el token antifalsificación"
-    return request(path, {**fields, "__RequestVerificationToken": token.group(1)})
+    action = re.search(r'<form[^>]*action="([^"]+)"', page)
+    assert action and action.group(1) == path, "El formulario debe apuntar a la acción MVC y conservar el identificador"
+    return request(action.group(1), {**fields, "__RequestVerificationToken": token.group(1)})
 
 
 def product_fields(**changes):
     return {
-        "Input.Nombre": name,
-        "Input.Descripcion": "Producto ficticio para verificar registro y persistencia.",
-        "Input.UnidadMedida": "Frasco",
-        "Input.PrecioSugerido": "55.25",
-        "Input.ImagenUrl": "",
+        "Nombre": name,
+        "Descripcion": "Producto ficticio para verificar registro y persistencia.",
+        "UnidadMedida": "Frasco",
+        "PrecioSugerido": "55.25",
+        "ImagenUrl": "",
         **changes,
     }
 
@@ -61,44 +63,56 @@ status, page, _ = request("/")
 check(status == 200 and "Catálogo de productos" in page, "Inicio y consulta general")
 status, page, _ = request("/lib/bootstrap/bootstrap.min.css")
 check(status == 200 and "Bootstrap" in page, "Estilos disponibles localmente")
-status, _, _ = request("/ProductosTerminados/Create", product_fields())
+status, _, _ = request("/Producto/Create", product_fields())
 check(status == 400, "Formulario sin token antifalsificación rechazado")
 
-status, page, _ = post("/ProductosTerminados/Create", product_fields(**{
-    "Input.Nombre": " ", "Input.UnidadMedida": "", "Input.PrecioSugerido": "-1",
+status, page, _ = post("/Producto/Create", product_fields(**{
+    "Nombre": " ", "UnidadMedida": "", "PrecioSugerido": "-1",
 }))
 check(status == 200 and "El nombre es obligatorio" in page
       and "La unidad de medida es obligatoria" in page and "El precio debe estar" in page,
       "Nombre, unidad y precio negativo validados en servidor")
-status, page, _ = post("/ProductosTerminados/Create", product_fields(**{
-    "Input.PrecioSugerido": "1.234", "Input.ImagenUrl": "javascript:alert(1)",
+status, page, _ = post("/Producto/Create", product_fields(**{
+    "PrecioSugerido": "1.234", "ImagenUrl": "javascript:alert(1)",
 }))
 check(status == 200 and "hasta dos decimales" in page and "comience con http" in page,
       "Decimales e imagen inválida rechazados")
-status, page, final_url = post("/ProductosTerminados/Create", product_fields())
+status, page, final_url = post("/Producto/Create", product_fields(**{
+    "StockActual": "999", "StockMinimo": "888", "Activo": "false",
+}))
 check(status == 200 and "Producto registrado correctamente" in page
       and not final_url.endswith("Create"), "Registro exitoso y redirección al catálogo")
 
-query = "/ProductosTerminados?" + urllib.parse.urlencode({"Buscar": name, "Activo": "true"})
+query = "/Producto?" + urllib.parse.urlencode({"Buscar": name, "Activo": "true"})
 status, page, _ = request(query)
-match = re.search(r'href="/ProductosTerminados/Details/(\d+)"', page)
+match = re.search(r'href="/Producto/Details/(\d+)"', page)
 check(status == 200 and name in page and match is not None and "1 resultado(s)" in page,
       "Búsqueda por nombre y filtro de activos")
 product_id = match.group(1)
-status, page, _ = request("/ProductosTerminados/Details/" + product_id)
+status, page, _ = request("/Producto/Details/" + product_id)
 check(status == 200 and name in page and "55.25" in page, "Consulta individual conserva datos registrados")
-status, page, _ = post("/ProductosTerminados/Create", product_fields())
+check("Activo" in page and page.count('>0.000</dd>') == 2,
+      "Negocio establece activo y stocks en cero aunque el POST envíe otros valores")
+status, page, _ = post("/Producto/Create", product_fields())
 check(status == 200 and "Ya existe un producto con ese nombre" in page, "Nombre duplicado rechazado")
 
-edit_path = "/ProductosTerminados/Edit/" + product_id
-status, page, _ = post(edit_path, product_fields(**{"Input.PrecioSugerido": "60.50"}))
+edit_path = "/Producto/Edit/" + product_id
+status, _, _ = request(edit_path, product_fields())
+check(status == 400, "Edición sin token antifalsificación rechazada")
+status, page, _ = post(edit_path, product_fields(**{"PrecioSugerido": "-1"}))
+check(status == 200 and "El precio debe estar" in page, "Edición inválida rechazada")
+status, page, _ = request("/Producto/Details/" + product_id)
+check(status == 200 and "55.25" in page, "Edición inválida conserva el precio anterior")
+status, page, _ = post(edit_path, product_fields(**{"PrecioSugerido": "60.50"}))
 check(status == 200 and "Producto actualizado correctamente" in page, "Edición de precio")
-status, page, _ = request("/ProductosTerminados/Details/" + product_id)
+status, page, _ = request("/Producto/Details/" + product_id)
 check(status == 200 and "60.50" in page, "Precio actualizado persiste al consultar")
-status, page, _ = post(edit_path, product_fields(**{"Input.PrecioSugerido": "60.50"}))
+status, page, _ = post(edit_path, product_fields(**{"PrecioSugerido": "60.50"}))
 check(status == 200 and "Producto actualizado correctamente" in page, "Edición sin cambios también es válida")
 
-delete_path = "/ProductosTerminados/Delete/" + product_id
+delete_path = "/Producto/Delete/" + product_id
+status, _, _ = request(delete_path, {})
+check(status == 400, "Baja sin token antifalsificación rechazada")
 status, page, _ = request(delete_path)
 check(status == 200 and "Confirmar baja" in page and "Cancelar" in page, "Pantalla de confirmación de baja")
 status, page, _ = request(query)
@@ -109,8 +123,17 @@ status, page, _ = request(query)
 check(status == 200 and "No se encontraron productos" in page, "Producto dado de baja excluido de activos")
 status, page, _ = request(query.replace("Activo=true", "Activo=false"))
 check(status == 200 and name in page and "Inactivo" in page, "Producto conservado en filtro de inactivos")
-status, page, _ = post("/ProductosTerminados/Create", product_fields())
+status, page, _ = post("/Producto/Create", product_fields())
 check(status == 200 and "incluso si está inactivo" in page, "Nombre inactivo también impide duplicados")
-status, _, _ = request("/ProductosTerminados/Details/9223372036854775807")
+status, page, _ = post(delete_path, {})
+check(status == 200 and "ya está inactivo o no existe" in page, "Baja repetida informa el estado del producto")
+status, page, _ = post(edit_path, product_fields(**{"PrecioSugerido": "60.50", "Activo": "true", "StockActual": "999"}))
+check(status == 200 and "Producto actualizado correctamente" in page, "Edición de información del producto inactivo")
+status, page, _ = request("/Producto/Details/" + product_id)
+check(status == 200 and "Inactivo" in page and page.count('>0.000</dd>') == 2,
+      "Edición conserva estado inactivo y existencias")
+status, _, _ = request("/Producto/Details/9223372036854775807")
 check(status == 404, "Producto inexistente devuelve 404")
+status, page, _ = request("/Home/Error")
+check(status == 200 and "No fue posible completar la operación" in page, "Vista MVC de errores disponible")
 print(f"\n{checks} comprobaciones aprobadas. Producto de prueba: {name} (Id={product_id}).")

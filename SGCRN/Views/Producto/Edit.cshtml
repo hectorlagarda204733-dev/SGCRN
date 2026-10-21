@@ -1,5 +1,4 @@
-@page "{id:long}"
-@model SGCRN.Pages.ProductosTerminados.EditModel
+@model ProductoTerminadoInput
 @{
     ViewData["Title"] = "Editar producto";
 }
@@ -7,10 +6,10 @@
 <h1>Editar producto</h1>
 <p class="text-muted">Actualiza la información del catálogo. Las existencias se conservan.</p>
 <div class="panel form-panel">
-    <form method="post" novalidate>
-        <partial name="_Campos" for="Input" />
+    <form asp-action="Edit" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post" novalidate>
+        <partial name="_Campos" model="Model" />
         <div class="d-flex justify-content-end gap-2">
-            <a class="btn btn-outline-secondary" asp-page="Index">Cancelar</a>
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
             <button class="btn btn-success" type="submit">Guardar cambios</button>
         </div>
     </form>

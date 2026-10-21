@@ -10,7 +10,7 @@
 - Validar campos obligatorios, longitudes, precio no negativo con hasta dos decimales y URL HTTP/HTTPS.
 - Conservar productos inactivos y evitar nombres duplicados, incluso entre inactivos.
 
-Aplicación local desarrollada con **ASP.NET Core 10 Razor Pages, C#, MySqlConnector y MySQL 8**. Bootstrap se incluye localmente.
+Aplicación local desarrollada con **ASP.NET Core 10 MVC, C#, MySqlConnector (ADO.NET) y MySQL 8**. Las vistas utilizan Razor y Bootstrap se incluye localmente.
 
 ## Abrir y ejecutar
 
@@ -52,12 +52,12 @@ El valor de `appsettings.json` es ilustrativo; no contiene una contraseña real.
 
 ```text
 SGCRN/
-  Models/                 Entidad del producto y validaciones de entrada
-  Data/                   Creación y apertura de conexión MySQL
-  Services/               Operaciones de productos y SQL parametrizado
-  Pages/ProductosTerminados/
-                          Listado, registro, consulta, edición y baja lógica
-  Program.cs              Registro de servicios y configuración Razor Pages
+  Models/                 Entidad, validaciones de entrada y modelo del catálogo
+  Views/Producto/         Vistas Razor: listado, registro, consulta, edición y baja
+  Controllers/            ProductoController: acciones HTTP del CU01
+  Services/               Reglas de negocio y operaciones del catálogo
+  Data/                   Conexión MySQL y repositorio con SQL parametrizado
+  Program.cs              Registro de servicios y configuración de rutas MVC
 database/
   migrations/             Esquema de una sola tabla y ejemplos
 scripts/
@@ -65,7 +65,13 @@ scripts/
   Verificar-CU01.py        Prueba integrada HTTP contra la aplicación iniciada
 ```
 
-Los `PageModel` (`*.cshtml.cs`) coordinan las solicitudes de Razor Pages. Las validaciones están en `ProductoTerminadoInput`; `ProductoTerminadoService` implementa las operaciones del catálogo y la persistencia mediante SQL parametrizado.
+La aplicación utiliza el patrón **Modelo-Vista-Controlador**. `ProductoController` recibe las solicitudes, valida el modelo y devuelve vistas o redirecciones. `ProductoTerminadoService` aplica las reglas del catálogo: validaciones de entrada, estado activo y stocks iniciales en cero, nombres únicos y baja lógica. `ProductoRepository` ejecuta el SQL parametrizado y `DbConnectionFactory` abre las conexiones a MySQL.
+
+```text
+Vista Razor → ProductoController → ProductoTerminadoService → ProductoRepository → MySQL
+```
+
+La URL principal es `/` o `/Producto`. El registro está en `/Producto/Create` y la consulta individual en `/Producto/Details/{id}`.
 
 ## Comprobación
 

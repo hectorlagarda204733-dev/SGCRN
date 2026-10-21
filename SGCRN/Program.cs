@@ -3,17 +3,19 @@ using SGCRN.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRazorPages();
+builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<DbConnectionFactory>();
+builder.Services.AddScoped<ProductoRepository>();
 builder.Services.AddScoped<ProductoTerminadoService>();
 
 var app = builder.Build();
 
-app.UseExceptionHandler("/Error");
+app.UseExceptionHandler("/Home/Error");
 app.UseRequestLocalization("es-MX");
 app.UseStaticFiles();
 app.UseRouting();
-app.MapRazorPages();
-app.MapGet("/", () => Results.Redirect("/ProductosTerminados"));
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Producto}/{action=Index}/{id?}");
 
 app.Run();
