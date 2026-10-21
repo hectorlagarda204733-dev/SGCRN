@@ -1,0 +1,30 @@
+@model ProductoTerminadoInput
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+<div class="mb-3">
+    <label asp-for="Nombre" class="form-label"></label>
+    <input asp-for="Nombre" class="form-control" maxlength="150" required />
+    <span asp-validation-for="Nombre" class="text-danger small"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="Descripcion" class="form-label"></label>
+    <textarea asp-for="Descripcion" class="form-control" rows="3" maxlength="500"></textarea>
+    <span asp-validation-for="Descripcion" class="text-danger small"></span>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <label asp-for="UnidadMedida" class="form-label"></label>
+        <input asp-for="UnidadMedida" class="form-control" maxlength="30" placeholder="Ej. Caja de 20 sobres" required />
+        <span asp-validation-for="UnidadMedida" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="PrecioSugerido" class="form-label"></label>
+        <input asp-for="PrecioSugerido" class="form-control" type="number" step="0.01" min="0" max="999999999999" required />
+        <span asp-validation-for="PrecioSugerido" class="text-danger small"></span>
+    </div>
+</div>
+<div class="mb-4">
+    <label asp-for="ImagenUrl" class="form-label"></label>
+    <input asp-for="ImagenUrl" class="form-control" maxlength="500" placeholder="https://..." />
+    <span asp-validation-for="ImagenUrl" class="text-danger small"></span>
+</div>

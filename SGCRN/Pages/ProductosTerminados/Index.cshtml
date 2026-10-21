@@ -1,0 +1,72 @@
+@page
+@model SGCRN.Pages.ProductosTerminados.IndexModel
+@{
+    ViewData["Title"] = "Catálogo de productos";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1>Catálogo de productos</h1>
+        <p class="text-muted mb-0">Consulta y administra los productos de remedios naturales.</p>
+    </div>
+    <a class="btn btn-success" asp-page="Create">+ Registrar producto</a>
+</div>
+
+<section class="panel mb-4" aria-label="Filtros del catálogo">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-6">
+            <label asp-for="Buscar" class="form-label">Buscar por nombre</label>
+            <input asp-for="Buscar" class="form-control" placeholder="Ej. manzanilla o miel" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="Activo" class="form-label">Estado</label>
+            <select asp-for="Activo" class="form-select">
+                <option value="">Todos</option>
+                <option value="true">Activos</option>
+                <option value="false">Inactivos</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button class="btn btn-success" type="submit">Consultar</button>
+            <a class="btn btn-outline-secondary" asp-page="Index">Limpiar</a>
+        </div>
+    </form>
+</section>
+
+<section class="panel" aria-label="Productos registrados">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">Productos registrados</h2>
+        <span class="badge text-bg-light">@Model.Productos.Count resultado(s)</span>
+    </div>
+    @if (Model.Productos.Count == 0)
+    {
+        <div class="alert alert-info mb-0" role="status">No se encontraron productos con los filtros indicados.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>Producto</th><th>Unidad</th><th class="text-end">Precio</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+                <tbody>
+                @foreach (var producto in Model.Productos)
+                {
+                    <tr>
+                        <td><strong>@producto.Nombre</strong><div class="small text-muted product-description">@producto.Descripcion</div></td>
+                        <td>@producto.UnidadMedida</td>
+                        <td class="text-end text-nowrap">@producto.PrecioSugerido.ToString("C2")</td>
+                        <td><span class="badge @(producto.Activo ? "text-bg-success" : "text-bg-secondary")">@(producto.Activo ? "Activo" : "Inactivo")</span></td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary" asp-page="Details" asp-route-id="@producto.Id">Consultar</a>
+                            <a class="btn btn-sm btn-outline-secondary" asp-page="Edit" asp-route-id="@producto.Id">Editar</a>
+                            @if (producto.Activo)
+                            {
+                                <a class="btn btn-sm btn-outline-danger" asp-page="Delete" asp-route-id="@producto.Id">Dar de baja</a>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

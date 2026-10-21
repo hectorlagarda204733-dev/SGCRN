@@ -1,0 +1,18 @@
+:root { --forest: #215747; --ink: #213b32; }
+body { background: #f4f7f5; color: var(--ink); font-family: "Segoe UI", sans-serif; }
+.site-header { background: var(--forest); color: white; padding: 20px 0; }
+.site-header a { color: white; text-decoration: none; }
+.brand { font-weight: 750; font-size: 1.45rem; letter-spacing: .03em; }
+.brand span { display: block; font-size: .75rem; font-weight: 400; opacity: .8; letter-spacing: .01em; }
+.eyebrow { color: #58796a; letter-spacing: .13em; font-size: .75rem; font-weight: 700; }
+h1 { font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 700; }
+.panel { background: white; padding: 1.5rem; border: 1px solid #dfe8e2; border-radius: 12px; box-shadow: 0 4px 18px #183e2810; }
+.form-panel { max-width: 780px; margin-top: 1.5rem; }
+.btn-success { --bs-btn-bg: #28634f; --bs-btn-border-color: #28634f; --bs-btn-hover-bg: #1c493a; --bs-btn-hover-border-color: #1c493a; }
+.form-label { font-weight: 600; }
+.product-description { max-width: 340px; white-space: normal; }
+.table > :not(caption) > * > * { padding: 1rem .65rem; }
+.table thead th { color: #587366; background: #f6f9f7; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.input-validation-error { border-color: #b02a37; }
+.field-validation-error { display: block; margin-top: .35rem; }
+@media (max-width: 576px) { .panel { padding: 1rem; } .site-header .nav-link { font-size: .8rem; } }
