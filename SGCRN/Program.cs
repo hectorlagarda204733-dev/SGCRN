@@ -1,12 +1,19 @@
+using Microsoft.EntityFrameworkCore;
 using SGCRN.Data;
 using SGCRN.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<DbConnectionFactory>();
+builder.Services.AddDbContext<SGCRNDbContext>(options =>
+    options.UseMySQL(builder.Configuration.GetConnectionString("SGCRN")
+        ?? throw new InvalidOperationException("Configure la conexión SGCRN en User Secrets.")));
 builder.Services.AddScoped<ProductoRepository>();
 builder.Services.AddScoped<ProductoTerminadoService>();
+builder.Services.AddScoped<MateriaPrimaRepository>();
+builder.Services.AddScoped<MateriaPrimaService>();
+builder.Services.AddScoped<EntradaInventarioRepository>();
+builder.Services.AddScoped<InventarioService>();
 
 var app = builder.Build();
 

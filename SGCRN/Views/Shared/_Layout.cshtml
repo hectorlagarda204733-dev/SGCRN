@@ -9,13 +9,17 @@
 </head>
 <body>
     <header class="site-header">
-        <nav class="container d-flex align-items-center justify-content-between gap-3" aria-label="Navegación principal">
+        <nav class="container d-flex flex-wrap align-items-center justify-content-between gap-2" aria-label="Navegación principal">
             <a class="brand" asp-controller="Producto" asp-action="Index">SGCRN <span>Remedios naturales</span></a>
-            <a class="nav-link" asp-controller="Producto" asp-action="Index">Catálogo de productos</a>
+            <div class="d-flex flex-wrap gap-2 gap-lg-3">
+                <a class="nav-link" asp-controller="MateriaPrima" asp-action="Index">Materias primas · CU01</a>
+                <a class="nav-link" asp-controller="Producto" asp-action="Index">Productos · CU02</a>
+                <a class="nav-link" asp-controller="EntradaInventario" asp-action="Index">Inventario · CU05</a>
+            </div>
         </nav>
     </header>
     <main class="container py-4 py-lg-5">
-        <div class="eyebrow mb-2">AVANCE 01 · CASO DE USO 01</div>
+        <div class="eyebrow mb-2">GESTIÓN DE REMEDIOS NATURALES · CU01 · CU02 · CU05</div>
         @if (TempData["Mensaje"] is string mensaje)
         {
             <div class="alert alert-success" role="status">@mensaje</div>
@@ -23,7 +27,7 @@
         @RenderBody()
     </main>
     <footer class="container py-4 text-muted small border-top">
-        Sistema de Gestión y Catálogo de Remedios Naturales · Registrar / Consultar Producto del Catálogo
+        Sistema de Gestión y Catálogo de Remedios Naturales · Catálogos y entradas de inventario
     </footer>
 </body>
 </html>

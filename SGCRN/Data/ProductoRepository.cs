@@ -1,63 +1,33 @@
-using MySqlConnector;
+using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 using SGCRN.Models;
 
 namespace SGCRN.Data;
 
-public sealed class ProductoRepository(DbConnectionFactory connectionFactory)
+public sealed class ProductoRepository(SGCRNDbContext db)
 {
     public async Task<IReadOnlyList<ProductoTerminado>> GetAllAsync(string? buscar = null, bool? activo = null)
     {
-        const string sql = """
-            SELECT Id, Nombre, Descripcion, ImagenUrl, UnidadMedida, PrecioSugerido,
-                   Activo, CreadoEn, ActualizadoEn
-            FROM ProductosTerminados
-            WHERE (@Buscar = '' OR LOCATE(@Buscar, Nombre) > 0)
-              AND (@Activo IS NULL OR Activo = @Activo)
-            ORDER BY Nombre
-            """;
-        await using var connection = connectionFactory.Create();
-        await using var command = new MySqlCommand(sql, connection);
-        command.Parameters.AddWithValue("@Buscar", buscar?.Trim() ?? "");
-        command.Parameters.AddWithValue("@Activo", (object?)activo ?? DBNull.Value);
-        await using var reader = await command.ExecuteReaderAsync();
-        var productos = new List<ProductoTerminado>();
-        while (await reader.ReadAsync()) productos.Add(Map(reader));
-        return productos;
+        var query = db.ProductosTerminados.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(buscar))
+            query = query.Where(p => p.Nombre.Contains(buscar.Trim()));
+        if (activo.HasValue)
+            query = query.Where(p => p.Activo == activo.Value);
+        return await query.OrderBy(p => p.Nombre).ToListAsync();
     }
 
-    public async Task<ProductoTerminado?> GetByIdAsync(long id)
-    {
-        const string sql = """
-            SELECT Id, Nombre, Descripcion, ImagenUrl, UnidadMedida, PrecioSugerido,
-                   Activo, CreadoEn, ActualizadoEn
-            FROM ProductosTerminados WHERE Id = @Id
-            """;
-        await using var connection = connectionFactory.Create();
-        await using var command = new MySqlCommand(sql, connection);
-        command.Parameters.AddWithValue("@Id", id);
-        await using var reader = await command.ExecuteReaderAsync();
-        return await reader.ReadAsync() ? Map(reader) : null;
-    }
+    public Task<ProductoTerminado?> GetByIdAsync(long id) =>
+        db.ProductosTerminados.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<long> CreateAsync(ProductoTerminado producto)
     {
-        const string sql = """
-            INSERT INTO ProductosTerminados
-                (Nombre, Descripcion, ImagenUrl, UnidadMedida, PrecioSugerido,
-                 Activo, CreadoEn, ActualizadoEn)
-            VALUES (@Nombre, @Descripcion, @ImagenUrl, @UnidadMedida, @PrecioSugerido,
-                    @Activo, NOW(), NOW())
-            """;
         try
         {
-            await using var connection = connectionFactory.Create();
-            await using var command = new MySqlCommand(sql, connection);
-            AddProductParameters(command, producto);
-            command.Parameters.AddWithValue("@Activo", producto.Activo);
-            await command.ExecuteNonQueryAsync();
-            return checked((long)command.LastInsertedId);
+            db.ProductosTerminados.Add(producto);
+            await db.SaveChangesAsync();
+            return producto.Id;
         }
-        catch (MySqlException ex) when (ex.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        catch (DbUpdateException ex) when (ex.InnerException is MySqlException { Number: 1062 })
         {
             throw new ProductoDuplicadoException(ex);
         }
@@ -65,21 +35,21 @@ public sealed class ProductoRepository(DbConnectionFactory connectionFactory)
 
     public async Task<bool> UpdateAsync(ProductoTerminado producto)
     {
-        const string sql = """
-            UPDATE ProductosTerminados
-            SET Nombre = @Nombre, Descripcion = @Descripcion, ImagenUrl = @ImagenUrl,
-                UnidadMedida = @UnidadMedida, PrecioSugerido = @PrecioSugerido
-            WHERE Id = @Id
-            """;
+        var existente = await db.ProductosTerminados.FindAsync(producto.Id);
+        if (existente is null) return false;
+
+        // La edición del catálogo no modifica las existencias ni la activación.
+        existente.Nombre = producto.Nombre;
+        existente.Descripcion = producto.Descripcion;
+        existente.ImagenUrl = producto.ImagenUrl;
+        existente.UnidadMedida = producto.UnidadMedida;
+        existente.PrecioSugerido = producto.PrecioSugerido;
         try
         {
-            await using var connection = connectionFactory.Create();
-            await using var command = new MySqlCommand(sql, connection);
-            AddProductParameters(command, producto);
-            command.Parameters.AddWithValue("@Id", producto.Id);
-            return await command.ExecuteNonQueryAsync() > 0;
+            await db.SaveChangesAsync();
+            return true;
         }
-        catch (MySqlException ex) when (ex.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        catch (DbUpdateException ex) when (ex.InnerException is MySqlException { Number: 1062 })
         {
             throw new ProductoDuplicadoException(ex);
         }
@@ -87,32 +57,10 @@ public sealed class ProductoRepository(DbConnectionFactory connectionFactory)
 
     public async Task<bool> DeactivateAsync(long id)
     {
-        const string sql = "UPDATE ProductosTerminados SET Activo = 0 WHERE Id = @Id AND Activo = 1";
-        await using var connection = connectionFactory.Create();
-        await using var command = new MySqlCommand(sql, connection);
-        command.Parameters.AddWithValue("@Id", id);
-        return await command.ExecuteNonQueryAsync() > 0;
+        var producto = await db.ProductosTerminados.FindAsync(id);
+        if (producto is null || !producto.Activo) return false;
+        producto.Activo = false;
+        await db.SaveChangesAsync();
+        return true;
     }
-
-    private static void AddProductParameters(MySqlCommand command, ProductoTerminado producto)
-    {
-        command.Parameters.AddWithValue("@Nombre", producto.Nombre);
-        command.Parameters.AddWithValue("@Descripcion", (object?)producto.Descripcion ?? DBNull.Value);
-        command.Parameters.AddWithValue("@ImagenUrl", (object?)producto.ImagenUrl ?? DBNull.Value);
-        command.Parameters.AddWithValue("@UnidadMedida", producto.UnidadMedida);
-        command.Parameters.AddWithValue("@PrecioSugerido", producto.PrecioSugerido);
-    }
-
-    private static ProductoTerminado Map(MySqlDataReader reader) => new()
-    {
-        Id = reader.GetInt64("Id"),
-        Nombre = reader.GetString("Nombre"),
-        Descripcion = reader.IsDBNull(reader.GetOrdinal("Descripcion")) ? null : reader.GetString("Descripcion"),
-        ImagenUrl = reader.IsDBNull(reader.GetOrdinal("ImagenUrl")) ? null : reader.GetString("ImagenUrl"),
-        UnidadMedida = reader.GetString("UnidadMedida"),
-        PrecioSugerido = reader.GetDecimal("PrecioSugerido"),
-        Activo = reader.GetBoolean("Activo"),
-        CreadoEn = reader.GetDateTime("CreadoEn"),
-        ActualizadoEn = reader.GetDateTime("ActualizadoEn")
-    };
 }

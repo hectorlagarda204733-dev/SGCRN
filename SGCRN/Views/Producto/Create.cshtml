@@ -3,12 +3,12 @@
     ViewData["Title"] = "Registrar producto";
 }
 
-<h1>Registrar producto</h1>
+<h1>Registrar producto · CU02</h1>
 <p class="text-muted">Completa la información del nuevo producto del catálogo.</p>
 <div class="panel form-panel">
     <form asp-action="Create" method="post" novalidate>
         <partial name="_Campos" model="Model" />
-        <p class="small text-muted">El producto se registra como activo en el catálogo.</p>
+        <p class="small text-muted">El producto inicia activo y sin existencias. El inventario se registra únicamente mediante CU05.</p>
         <div class="d-flex justify-content-end gap-2">
             <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
             <button class="btn btn-success" type="submit">Guardar producto</button>

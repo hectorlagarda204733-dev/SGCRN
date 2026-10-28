@@ -1,0 +1,83 @@
+@model EntradaInventarioInput
+@{
+    ViewData["Title"] = "Registrar entrada";
+    var materias = (IReadOnlyList<MateriaPrima>)ViewData["MateriasPrimas"]!;
+    var productos = (IReadOnlyList<ProductoTerminado>)ViewData["Productos"]!;
+}
+<h1>Registrar entrada de inventario · CU05</h1>
+<p class="text-muted">Una compra aumenta existencias de una materia prima; una producción terminada aumenta las de un producto.</p>
+<div class="panel form-panel">
+    <form asp-action="Create" method="post" novalidate>
+        <div asp-validation-summary="All" class="text-danger mb-3" role="alert"></div>
+        <div class="mb-3">
+            <label asp-for="TipoOrigen" class="form-label"></label>
+            <select asp-for="TipoOrigen" class="form-select">
+                <option value="">Selecciona el origen</option>
+                <option value="Compra">Compra de materia prima</option>
+                <option value="Produccion">Producción de producto terminado</option>
+            </select>
+            <span asp-validation-for="TipoOrigen" class="text-danger small"></span>
+        </div>
+        <div class="mb-3" id="destino-materia">
+            <label asp-for="MateriaPrimaId" class="form-label"></label>
+            <select asp-for="MateriaPrimaId" class="form-select">
+                <option value="">Selecciona una materia prima activa</option>
+                @foreach (var materia in materias)
+                {
+                    <option value="@materia.Id">@materia.Nombre (@materia.UnidadMedida)</option>
+                }
+            </select>
+            <span asp-validation-for="MateriaPrimaId" class="text-danger small"></span>
+        </div>
+        <div class="mb-3" id="destino-producto">
+            <label asp-for="ProductoTerminadoId" class="form-label"></label>
+            <select asp-for="ProductoTerminadoId" class="form-select">
+                <option value="">Selecciona un producto activo</option>
+                @foreach (var producto in productos)
+                {
+                    <option value="@producto.Id">@producto.Nombre (@producto.UnidadMedida)</option>
+                }
+            </select>
+            <span asp-validation-for="ProductoTerminadoId" class="text-danger small"></span>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label asp-for="Cantidad" class="form-label"></label>
+                <input asp-for="Cantidad" type="number" step="0.001" min="0.001" class="form-control" required />
+                <span asp-validation-for="Cantidad" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="CostoUnitario" class="form-label"></label>
+                <input asp-for="CostoUnitario" type="number" step="0.01" min="0" class="form-control" required />
+                <span asp-validation-for="CostoUnitario" class="text-danger small"></span>
+            </div>
+        </div>
+        <div class="mb-4">
+            <label asp-for="Observaciones" class="form-label"></label>
+            <textarea asp-for="Observaciones" class="form-control" rows="3" maxlength="500"></textarea>
+            <span asp-validation-for="Observaciones" class="text-danger small"></span>
+        </div>
+        <p class="small text-muted">La entrada y el aumento de existencias se guardan juntos en una transacción; el catálogo no permite capturarlas por separado.</p>
+        <div class="d-flex justify-content-end gap-2">
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+            <button class="btn btn-success" type="submit">Registrar entrada</button>
+        </div>
+    </form>
+</div>
+<script>
+    (() => {
+        const origen = document.getElementById('TipoOrigen');
+        const materia = document.getElementById('destino-materia');
+        const producto = document.getElementById('destino-producto');
+        function actualizar(limpiar) {
+            materia.hidden = origen.value !== 'Compra';
+            producto.hidden = origen.value !== 'Produccion';
+            if (limpiar) {
+                if (materia.hidden) document.getElementById('MateriaPrimaId').value = '';
+                if (producto.hidden) document.getElementById('ProductoTerminadoId').value = '';
+            }
+        }
+        origen.addEventListener('change', () => actualizar(true));
+        actualizar(false);
+    })();
+</script>

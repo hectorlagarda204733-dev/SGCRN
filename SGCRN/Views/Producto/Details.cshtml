@@ -15,6 +15,7 @@
         <dt class="col-sm-5">Identificador</dt><dd class="col-sm-7">@Model.Id</dd>
         <dt class="col-sm-5">Unidad de medida</dt><dd class="col-sm-7">@Model.UnidadMedida</dd>
         <dt class="col-sm-5">Precio sugerido</dt><dd class="col-sm-7">@Model.PrecioSugerido.ToString("C2")</dd>
+        <dt class="col-sm-5">Existencias actuales (CU05)</dt><dd class="col-sm-7">@Model.StockActual.ToString("N3")</dd>
         <dt class="col-sm-5">Fecha de registro</dt><dd class="col-sm-7">@Model.CreadoEn.ToString("dd/MM/yyyy HH:mm")</dd>
         <dt class="col-sm-5">Última actualización</dt><dd class="col-sm-7">@Model.ActualizadoEn.ToString("dd/MM/yyyy HH:mm")</dd>
         <dt class="col-sm-5">URL de imagen</dt><dd class="col-sm-7 text-break">@(string.IsNullOrWhiteSpace(Model.ImagenUrl) ? "Sin imagen." : Model.ImagenUrl)</dd>

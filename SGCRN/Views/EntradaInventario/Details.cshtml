@@ -1,0 +1,20 @@
+@model EntradaInventario
+@{
+    ViewData["Title"] = "Consultar entrada";
+}
+<h1>Consultar entrada · CU05</h1>
+<article class="panel form-panel">
+    <dl class="row">
+        <dt class="col-sm-5">Folio</dt><dd class="col-sm-7">@Model.Id</dd>
+        <dt class="col-sm-5">Fecha</dt><dd class="col-sm-7">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
+        <dt class="col-sm-5">Origen</dt><dd class="col-sm-7">@(Model.TipoOrigen == TipoOrigenEntrada.Compra ? "Compra de insumo" : "Producción terminada")</dd>
+        <dt class="col-sm-5">Destino</dt><dd class="col-sm-7">@(Model.MateriaPrima?.Nombre ?? Model.ProductoTerminado?.Nombre ?? "Sin destino")</dd>
+        <dt class="col-sm-5">Cantidad registrada</dt><dd class="col-sm-7">@Model.Cantidad.ToString("N3")</dd>
+        <dt class="col-sm-5">Costo unitario</dt><dd class="col-sm-7">@Model.CostoUnitario.ToString("C2")</dd>
+        <dt class="col-sm-5">Observaciones</dt><dd class="col-sm-7">@(Model.Observaciones ?? "Sin observaciones.")</dd>
+    </dl>
+    <div class="d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Index">Ver historial</a>
+        <a class="btn btn-success" asp-action="Create">Registrar otra entrada</a>
+    </div>
+</article>

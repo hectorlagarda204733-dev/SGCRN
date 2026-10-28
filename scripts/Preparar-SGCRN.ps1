@@ -15,28 +15,28 @@ try {
     $env:MYSQL_PWD = [Net.NetworkCredential]::new('', $AdminPassword).Password
     $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
-    foreach ($file in @('001_catalogo.sql', '002_productos_ejemplo.sql', '003_separar_catalogo_inventario.sql')) {
+    foreach ($file in @('001_esquema.sql', '002_datos_ejemplo.sql')) {
         $path = (Join-Path $root "database/migrations/$file").Replace('\', '/')
         & $MySqlPath --host=localhost --user=$AdminUser --default-character-set=utf8mb4 --execute="source $path"
         if ($LASTEXITCODE -ne 0) { throw "Falló la migración $file." }
     }
 
-    # Usuario exclusivo de esta entrega. Cada ejecución renueva su contraseña local.
+    # Usuario de la aplicación: cada ejecución renueva la contraseña local.
     $password = [Guid]::NewGuid().ToString('N') + [Guid]::NewGuid().ToString('N')
     $sql = @"
-CREATE USER IF NOT EXISTS 'sgcrn_avance01'@'localhost' IDENTIFIED BY '$password';
-ALTER USER 'sgcrn_avance01'@'localhost' IDENTIFIED BY '$password';
-GRANT SELECT, INSERT, UPDATE ON SGCRN_Avance01.* TO 'sgcrn_avance01'@'localhost';
+CREATE USER IF NOT EXISTS 'sgcrn_proyecto'@'localhost' IDENTIFIED BY '$password';
+ALTER USER 'sgcrn_proyecto'@'localhost' IDENTIFIED BY '$password';
+GRANT SELECT, INSERT, UPDATE ON SGCRN_Proyecto.* TO 'sgcrn_proyecto'@'localhost';
 "@
     $sql | & $MySqlPath --host=localhost --user=$AdminUser --default-character-set=utf8mb4
-    if ($LASTEXITCODE -ne 0) { throw 'No se pudo configurar el usuario del avance.' }
+    if ($LASTEXITCODE -ne 0) { throw 'No se pudo configurar el usuario de la aplicación.' }
 
-    $connection = "Server=localhost;Port=3306;Database=SGCRN_Avance01;User=sgcrn_avance01;Password=$password;DefaultCommandTimeout=30"
+    $connection = "Server=localhost;Port=3306;Database=SGCRN_Proyecto;User=sgcrn_proyecto;Password=$password;DefaultCommandTimeout=30"
     @{ 'ConnectionStrings:SGCRN' = $connection } | ConvertTo-Json -Compress |
         dotnet user-secrets set --project (Join-Path $root 'SGCRN/SGCRN.csproj')
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo guardar la conexión en secretos locales.' }
 
-    Write-Host 'Avance configurado: SGCRN_Avance01, una tabla y tres productos de ejemplo.'
+    Write-Host 'SGCRN configurado: SGCRN_Proyecto, tres tablas y catálogos de ejemplo.'
     Write-Host 'Ejecuta: dotnet run --project SGCRN/SGCRN.csproj'
     Write-Host 'Abre: http://localhost:5181'
 }

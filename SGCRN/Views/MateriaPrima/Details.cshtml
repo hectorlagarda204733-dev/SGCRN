@@ -1,0 +1,24 @@
+@model MateriaPrima
+@{
+    ViewData["Title"] = "Consultar materia prima";
+}
+<h1>Consultar materia prima · CU01</h1>
+<article class="panel form-panel">
+    <div class="d-flex justify-content-between gap-3 mb-3">
+        <h2 class="h4">@Model.Nombre</h2>
+        <span class="badge align-self-start @(Model.Activo ? "text-bg-success" : "text-bg-secondary")">@(Model.Activo ? "Activa" : "Inactiva")</span>
+    </div>
+    <p>@(Model.Descripcion ?? "Sin descripción.")</p>
+    <dl class="row">
+        <dt class="col-sm-5">Identificador</dt><dd class="col-sm-7">@Model.Id</dd>
+        <dt class="col-sm-5">Unidad de medida</dt><dd class="col-sm-7">@Model.UnidadMedida</dd>
+        <dt class="col-sm-5">Existencias actuales (CU05)</dt><dd class="col-sm-7">@Model.StockActual.ToString("N3")</dd>
+        <dt class="col-sm-5">Stock mínimo</dt><dd class="col-sm-7">@Model.StockMinimo.ToString("N3")</dd>
+        <dt class="col-sm-5">Fecha de registro</dt><dd class="col-sm-7">@Model.CreadoEn.ToString("dd/MM/yyyy HH:mm")</dd>
+        <dt class="col-sm-5">Última actualización</dt><dd class="col-sm-7">@Model.ActualizadoEn.ToString("dd/MM/yyyy HH:mm")</dd>
+    </dl>
+    <div class="d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Index">Volver al catálogo</a>
+        <a class="btn btn-success" asp-action="Edit" asp-route-id="@Model.Id">Editar materia prima</a>
+    </div>
+</article>

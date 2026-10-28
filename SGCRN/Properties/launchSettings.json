@@ -1,7 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "SGCRN-Avance01": {
+    "SGCRN": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

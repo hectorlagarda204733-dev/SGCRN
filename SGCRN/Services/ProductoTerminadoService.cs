@@ -15,6 +15,7 @@ public sealed class ProductoTerminadoService(ProductoRepository productoReposito
     {
         var producto = BuildProduct(input);
         producto.Activo = true;
+        producto.StockActual = 0;
 
         try
         {
