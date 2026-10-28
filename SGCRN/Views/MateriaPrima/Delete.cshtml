@@ -1,22 +1,14 @@
 @model MateriaPrima
-@{
-    ViewData["Title"] = "Dar de baja materia prima";
-}
-<h1>Dar de baja materia prima</h1>
-<p class="text-muted">No se borrarán el registro ni el historial de inventario.</p>
-<div class="panel form-panel">
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
-    <p>¿Confirmas la baja de <strong>@Model.Nombre</strong>?</p>
-    @if (Model.Activo)
-    {
-        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-flex justify-content-end gap-2">
-            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
-            <button class="btn btn-danger" type="submit">Confirmar baja</button>
-        </form>
-    }
-    else
-    {
-        <p class="text-muted">La materia prima ya está inactiva.</p>
-        <a class="btn btn-outline-secondary" asp-action="Index">Volver</a>
-    }
-</div>
+@{ ViewData["Title"] = "Dar de baja materia prima"; }
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index" data-catalog-back="MateriaPrima">Materias primas</a><span aria-hidden="true">/</span><a asp-action="Details" asp-route-id="@Model.Id">@Model.Nombre</a><span aria-hidden="true">/</span><span>Dar de baja</span></nav>
+<partial name="_FormFeedback" />
+<form class="form-sheet confirmation" asp-action="Delete" asp-route-id="@Model.Id" method="post" data-save-form>
+    <div class="form-section">
+        <span class="confirmation-symbol"><partial name="_Icon" model='@("warning")' /></span>
+        <h1>@(Model.Activo ? "¿Dar de baja esta materia prima?" : "Esta materia prima ya está inactiva")</h1>
+        <div class="record-reference">@Model.Nombre</div>
+        <p>Su información y su historial se conservarán. Mientras esté inactiva, no podrás registrar nuevas entradas para esta materia prima.</p>
+        <p>Las existencias actuales no se modificarán.</p>
+    </div>
+    <div class="form-actions"><a class="button" asp-action="Details" asp-route-id="@Model.Id">@(Model.Activo ? "Cancelar" : "Volver a la materia prima")</a>@if (Model.Activo) { <button class="button button-danger" type="submit">Dar de baja</button> }</div>
+</form>

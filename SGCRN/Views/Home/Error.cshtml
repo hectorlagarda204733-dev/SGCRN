@@ -1,7 +1,5 @@
-@{
-    ViewData["Title"] = "No fue posible completar la operación";
-}
-<h1 class="h3">No fue posible completar la operación</h1>
-<p>Comprueba que MySQL esté iniciado y que la conexión a <strong>SGCRN_Proyecto</strong> esté configurada.</p>
-<p>Consulta las instrucciones de configuración en el archivo README del proyecto.</p>
-<a class="btn btn-success" asp-controller="Producto" asp-action="Index">Volver al catálogo</a>
+@{ ViewData["Title"] = "No pudimos completar la operación"; }
+<section class="form-sheet confirmation">
+    <div class="form-section"><span class="confirmation-symbol"><partial name="_Icon" model='@("warning")' /></span><h1>No pudimos completar la operación</h1><p>Hubo un problema al procesar tu solicitud. Vuelve al catálogo y comprueba si el cambio quedó registrado antes de intentarlo otra vez.</p><p>Si el problema continúa, contacta a quien administra el sistema.</p></div>
+    <div class="form-actions"><a class="button button-primary" asp-controller="Producto" asp-action="Index">Volver a productos</a></div>
+</section>

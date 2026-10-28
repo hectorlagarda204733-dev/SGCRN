@@ -1,24 +1,27 @@
 @model MateriaPrima
-@{
-    ViewData["Title"] = "Consultar materia prima";
-}
-<h1>Consultar materia prima · CU01</h1>
-<article class="panel form-panel">
-    <div class="d-flex justify-content-between gap-3 mb-3">
-        <h2 class="h4">@Model.Nombre</h2>
-        <span class="badge align-self-start @(Model.Activo ? "text-bg-success" : "text-bg-secondary")">@(Model.Activo ? "Activa" : "Inactiva")</span>
-    </div>
-    <p>@(Model.Descripcion ?? "Sin descripción.")</p>
-    <dl class="row">
-        <dt class="col-sm-5">Identificador</dt><dd class="col-sm-7">@Model.Id</dd>
-        <dt class="col-sm-5">Unidad de medida</dt><dd class="col-sm-7">@Model.UnidadMedida</dd>
-        <dt class="col-sm-5">Existencias actuales (CU05)</dt><dd class="col-sm-7">@Model.StockActual.ToString("N3")</dd>
-        <dt class="col-sm-5">Stock mínimo</dt><dd class="col-sm-7">@Model.StockMinimo.ToString("N3")</dd>
-        <dt class="col-sm-5">Fecha de registro</dt><dd class="col-sm-7">@Model.CreadoEn.ToString("dd/MM/yyyy HH:mm")</dd>
-        <dt class="col-sm-5">Última actualización</dt><dd class="col-sm-7">@Model.ActualizadoEn.ToString("dd/MM/yyyy HH:mm")</dd>
-    </dl>
-    <div class="d-flex justify-content-end gap-2">
-        <a class="btn btn-outline-secondary" asp-action="Index">Volver al catálogo</a>
-        <a class="btn btn-success" asp-action="Edit" asp-route-id="@Model.Id">Editar materia prima</a>
-    </div>
-</article>
+@{ ViewData["Title"] = Model.Nombre; }
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index" data-catalog-back="MateriaPrima">Materias primas</a><span aria-hidden="true">/</span><span>Detalle</span></nav>
+<header class="page-heading">
+    <div><span class="eyebrow">Materia prima #@Model.Id.ToString("D4")</span><h1>@Model.Nombre</h1></div>
+    <div class="heading-actions"><span class="status @(Model.Activo ? "" : "status-inactive")">@(Model.Activo ? "Activa" : "Inactiva")</span><a class="button" asp-action="Edit" asp-route-id="@Model.Id"><partial name="_Icon" model='@("edit")' />Editar materia prima</a></div>
+</header>
+<div class="detail-layout">
+    <article class="detail-panel">
+        <h2>Información de la materia prima</h2><p class="detail-description">@(string.IsNullOrWhiteSpace(Model.Descripcion) ? "Sin descripción." : Model.Descripcion)</p>
+        <dl class="detail-grid">
+            <div><dt>Unidad de medida</dt><dd>@Model.UnidadMedida</dd></div>
+            <div><dt>Stock mínimo de referencia</dt><dd>@Model.StockMinimo.ToString("N3") <span class="unit">@Model.UnidadMedida</span></dd></div>
+            <div><dt>Fecha de registro</dt><dd>@Model.CreadoEn.ToString("dd MMM yyyy, HH:mm")</dd></div>
+            <div><dt>Última actualización</dt><dd>@Model.ActualizadoEn.ToString("dd MMM yyyy, HH:mm")</dd></div>
+        </dl>
+        @if (Model.Activo) { <div class="detail-meta"><a asp-action="Delete" asp-route-id="@Model.Id">Dar de baja esta materia prima</a></div> }
+    </article>
+    <aside class="detail-panel stock-panel" aria-label="Inventario de la materia prima">
+        <dl><dt>Existencias actuales</dt><dd class="stock-value">@Model.StockActual.ToString("N3")</dd></dl><span class="unit">@Model.UnidadMedida</span>
+        @if (Model.Activo)
+        {
+            <p>Registra una entrada cuando recibas una compra.</p><a class="button" asp-controller="EntradaInventario" asp-action="Create"><partial name="_Icon" model='@("entry")' />Registrar entrada</a>
+        }
+        else { <p>Esta materia prima está inactiva y no admite nuevas entradas.</p> }
+    </aside>
+</div>

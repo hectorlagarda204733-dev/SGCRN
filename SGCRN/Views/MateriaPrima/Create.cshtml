@@ -1,16 +1,12 @@
 @model MateriaPrimaInput
-@{
-    ViewData["Title"] = "Registrar materia prima";
-}
-<h1>Registrar materia prima · CU01</h1>
-<p class="text-muted">Completa el catálogo de insumos, sin capturar existencias.</p>
-<div class="panel form-panel">
-    <form asp-action="Create" method="post" novalidate>
+@{ ViewData["Title"] = "Nueva materia prima"; }
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index" data-catalog-back="MateriaPrima">Materias primas</a><span aria-hidden="true">/</span><span>Nueva materia prima</span></nav>
+<header class="page-heading"><div><h1>Nueva materia prima</h1><p class="page-description">Agrega un ingrediente o material a tu catálogo.</p></div></header>
+<partial name="_FormFeedback" />
+<div class="form-layout">
+    <form class="form-sheet" asp-action="Create" method="post" novalidate data-save-form>
         <partial name="_Campos" model="Model" />
-        <p class="small text-muted">Las existencias inician en cero y solo CU05 las aumenta mediante entradas de inventario.</p>
-        <div class="d-flex justify-content-end gap-2">
-            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
-            <button class="btn btn-success" type="submit">Guardar materia prima</button>
-        </div>
+        <div class="form-actions"><a class="button button-quiet" asp-action="Index" data-catalog-back="MateriaPrima">Cancelar</a><button class="button button-primary" type="submit">Crear materia prima</button></div>
     </form>
+    <aside class="form-aside"><div class="aside-rule"></div><h2>Existencias iniciales</h2><p>La materia prima se creará activa y con existencias en cero. Al recibir una compra, registra una entrada con la cantidad recibida.</p><div class="aside-note"><p>Elige una unidad de medida que puedas mantener en todas tus entradas: por ejemplo, kilogramos para ingredientes y piezas para envases.</p></div></aside>
 </div>

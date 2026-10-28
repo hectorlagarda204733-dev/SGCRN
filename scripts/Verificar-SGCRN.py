@@ -99,7 +99,7 @@ check(status == 200 and "Producto registrado correctamente" in page, "CU02: regi
 query_product = "/Producto?" + urllib.parse.urlencode({"Buscar": product_name, "Activo": "true"})
 status, page, _ = request(query_product)
 match = re.search(r'href="/Producto/Details/(\d+)"', page)
-check(status == 200 and product_name in page and match is not None and "1 resultado(s)" in page,
+check(status == 200 and product_name in page and match is not None and 'data-result-count="1"' in page,
       "CU02: búsqueda y filtro de activos")
 product_id = match.group(1)
 status, page, _ = request("/Producto/Details/" + product_id)
@@ -128,7 +128,7 @@ check(status == 200 and "Materia prima registrada correctamente" in page, "CU01:
 query_material = "/MateriaPrima?" + urllib.parse.urlencode({"Buscar": material_name, "Activo": "true"})
 status, page, _ = request(query_material)
 match = re.search(r'href="/MateriaPrima/Details/(\d+)"', page)
-check(status == 200 and material_name in page and match is not None and "1 resultado(s)" in page,
+check(status == 200 and material_name in page and match is not None and 'data-result-count="1"' in page,
       "CU01: búsqueda y filtro de activos")
 material_id = match.group(1)
 status, page, _ = request("/MateriaPrima/Details/" + material_id)

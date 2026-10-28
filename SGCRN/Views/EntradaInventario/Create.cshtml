@@ -4,80 +4,51 @@
     var materias = (IReadOnlyList<MateriaPrima>)ViewData["MateriasPrimas"]!;
     var productos = (IReadOnlyList<ProductoTerminado>)ViewData["Productos"]!;
 }
-<h1>Registrar entrada de inventario · CU05</h1>
-<p class="text-muted">Una compra aumenta existencias de una materia prima; una producción terminada aumenta las de un producto.</p>
-<div class="panel form-panel">
-    <form asp-action="Create" method="post" novalidate>
-        <div asp-validation-summary="All" class="text-danger mb-3" role="alert"></div>
-        <div class="mb-3">
-            <label asp-for="TipoOrigen" class="form-label"></label>
-            <select asp-for="TipoOrigen" class="form-select">
-                <option value="">Selecciona el origen</option>
-                <option value="Compra">Compra de materia prima</option>
-                <option value="Produccion">Producción de producto terminado</option>
-            </select>
-            <span asp-validation-for="TipoOrigen" class="text-danger small"></span>
-        </div>
-        <div class="mb-3" id="destino-materia">
-            <label asp-for="MateriaPrimaId" class="form-label"></label>
-            <select asp-for="MateriaPrimaId" class="form-select">
-                <option value="">Selecciona una materia prima activa</option>
-                @foreach (var materia in materias)
-                {
-                    <option value="@materia.Id">@materia.Nombre (@materia.UnidadMedida)</option>
-                }
-            </select>
-            <span asp-validation-for="MateriaPrimaId" class="text-danger small"></span>
-        </div>
-        <div class="mb-3" id="destino-producto">
-            <label asp-for="ProductoTerminadoId" class="form-label"></label>
-            <select asp-for="ProductoTerminadoId" class="form-select">
-                <option value="">Selecciona un producto activo</option>
-                @foreach (var producto in productos)
-                {
-                    <option value="@producto.Id">@producto.Nombre (@producto.UnidadMedida)</option>
-                }
-            </select>
-            <span asp-validation-for="ProductoTerminadoId" class="text-danger small"></span>
-        </div>
-        <div class="row g-3 mb-3">
-            <div class="col-md-6">
-                <label asp-for="Cantidad" class="form-label"></label>
-                <input asp-for="Cantidad" type="number" step="0.001" min="0.001" class="form-control" required />
-                <span asp-validation-for="Cantidad" class="text-danger small"></span>
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index">Entradas</a><span aria-hidden="true">/</span><span>Registrar entrada</span></nav>
+<header class="page-heading"><div><h1>Registrar entrada</h1><p class="page-description">Registra lo recibido para actualizar tus existencias.</p></div></header>
+<partial name="_FormFeedback" />
+<div class="form-layout">
+    <form class="form-sheet" asp-action="Create" method="post" novalidate data-save-form data-entry-form>
+        <section class="form-section" aria-labelledby="entrada-origen">
+            <div class="section-heading"><h2 id="entrada-origen">01 · Origen y artículo</h2></div>
+            <fieldset class="field">
+                <legend class="field-label">¿De dónde viene esta entrada?</legend>
+                <div class="choice-group">
+                    <label class="choice"><input asp-for="TipoOrigen" type="radio" value="Compra" id="origen-compra" required aria-describedby="TipoOrigen-error" /><span><strong>Compra</strong><small>Recibí una materia prima.</small></span></label>
+                    <label class="choice"><input asp-for="TipoOrigen" type="radio" value="Produccion" id="origen-produccion" required aria-describedby="TipoOrigen-error" /><span><strong>Producción</strong><small>Terminé un producto.</small></span></label>
+                </div><span asp-validation-for="TipoOrigen" id="TipoOrigen-error"></span>
+            </fieldset>
+            <div class="field" data-destination="Compra">
+                <label asp-for="MateriaPrimaId" class="field-label">Materia prima recibida</label>
+                <select asp-for="MateriaPrimaId" class="field-control" aria-describedby="MateriaPrimaId-error">
+                    <option value="">Selecciona una materia prima</option>
+                    @foreach (var materia in materias) { <option value="@materia.Id" data-name="@materia.Nombre" data-unit="@materia.UnidadMedida">@materia.Nombre (@materia.UnidadMedida)</option> }
+                </select><span asp-validation-for="MateriaPrimaId" id="MateriaPrimaId-error"></span>
+                @if (materias.Count == 0) { <span class="field-help">No hay materias primas activas. <a asp-controller="MateriaPrima" asp-action="Create">Crear una materia prima</a>.</span> }
             </div>
-            <div class="col-md-6">
-                <label asp-for="CostoUnitario" class="form-label"></label>
-                <input asp-for="CostoUnitario" type="number" step="0.01" min="0" class="form-control" required />
-                <span asp-validation-for="CostoUnitario" class="text-danger small"></span>
+            <div class="field" data-destination="Produccion">
+                <label asp-for="ProductoTerminadoId" class="field-label">Producto terminado</label>
+                <select asp-for="ProductoTerminadoId" class="field-control" aria-describedby="ProductoTerminadoId-error">
+                    <option value="">Selecciona un producto</option>
+                    @foreach (var producto in productos) { <option value="@producto.Id" data-name="@producto.Nombre" data-unit="@producto.UnidadMedida">@producto.Nombre (@producto.UnidadMedida)</option> }
+                </select><span asp-validation-for="ProductoTerminadoId" id="ProductoTerminadoId-error"></span>
+                @if (productos.Count == 0) { <span class="field-help">No hay productos activos. <a asp-controller="Producto" asp-action="Create">Crear un producto</a>.</span> }
             </div>
-        </div>
-        <div class="mb-4">
-            <label asp-for="Observaciones" class="form-label"></label>
-            <textarea asp-for="Observaciones" class="form-control" rows="3" maxlength="500"></textarea>
-            <span asp-validation-for="Observaciones" class="text-danger small"></span>
-        </div>
-        <p class="small text-muted">La entrada y el aumento de existencias se guardan juntos en una transacción; el catálogo no permite capturarlas por separado.</p>
-        <div class="d-flex justify-content-end gap-2">
-            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
-            <button class="btn btn-success" type="submit">Registrar entrada</button>
-        </div>
+            <noscript><p class="field-help">Selecciona solo el destino que corresponde al origen: materia prima para compra o producto para producción.</p></noscript>
+        </section>
+        <section class="form-section" aria-labelledby="entrada-cantidad">
+            <div class="section-heading"><h2 id="entrada-cantidad">02 · Cantidad y costo</h2><span>Obligatorio, salvo donde se indique.</span></div>
+            <div class="field-row">
+                <div class="field"><label asp-for="Cantidad" class="field-label">Cantidad recibida</label><input asp-for="Cantidad" type="number" step="0.001" min="0.001" max="999999999999.999" inputmode="decimal" class="field-control" required aria-describedby="cantidad-help Cantidad-error" /><span class="field-help" id="cantidad-help" data-quantity-unit>Hasta 3 decimales.</span><span asp-validation-for="Cantidad" id="Cantidad-error"></span></div>
+                <div class="field"><label asp-for="CostoUnitario" class="field-label">Costo unitario · MXN</label><input asp-for="CostoUnitario" type="number" step="0.01" min="0" max="999999999999.99" inputmode="decimal" class="field-control" required aria-describedby="costo-help CostoUnitario-error" /><span class="field-help" id="costo-help">Costo por unidad recibida. Puede ser cero.</span><span asp-validation-for="CostoUnitario" id="CostoUnitario-error"></span></div>
+            </div>
+            <div class="field"><label asp-for="Observaciones" class="field-label">Observaciones <span class="optional">Opcional</span></label><textarea asp-for="Observaciones" class="field-control" rows="3" maxlength="500" placeholder="Referencia de compra, lote o algún detalle de la recepción." aria-describedby="Observaciones-error"></textarea><span asp-validation-for="Observaciones" id="Observaciones-error"></span></div>
+        </section>
+        <div class="entry-preview"><span class="preview-label">Al registrar esta entrada</span><p data-entry-preview aria-live="polite" aria-atomic="true">Se sumará la cantidad recibida a las existencias del artículo seleccionado.</p></div>
+        <div class="form-actions"><a class="button button-quiet" asp-action="Index">Cancelar</a><button class="button button-primary" type="submit">Registrar entrada</button></div>
     </form>
+    <aside class="form-aside">
+        <div class="aside-rule"></div><h2>Cada entrada tiene un destino</h2><p>Una compra suma existencias a una materia prima. Una producción terminada suma existencias a un producto.</p>
+        <div class="aside-note"><h2>Revisa antes de guardar</h2><p>Confirma el artículo, su unidad y la cantidad recibida. La entrada quedará en el historial con su propio folio.</p><p>No se puede editar ni eliminar una entrada registrada desde esta pantalla.</p></div>
+    </aside>
 </div>
-<script>
-    (() => {
-        const origen = document.getElementById('TipoOrigen');
-        const materia = document.getElementById('destino-materia');
-        const producto = document.getElementById('destino-producto');
-        function actualizar(limpiar) {
-            materia.hidden = origen.value !== 'Compra';
-            producto.hidden = origen.value !== 'Produccion';
-            if (limpiar) {
-                if (materia.hidden) document.getElementById('MateriaPrimaId').value = '';
-                if (producto.hidden) document.getElementById('ProductoTerminadoId').value = '';
-            }
-        }
-        origen.addEventListener('change', () => actualizar(true));
-        actualizar(false);
-    })();
-</script>

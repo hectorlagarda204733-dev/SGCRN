@@ -1,33 +1,45 @@
+@{
+    var section = ViewContext.RouteData.Values["controller"]?.ToString();
+}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-MX">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#243e36" />
     <title>@ViewData["Title"] · SGCRN</title>
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
 </head>
 <body>
-    <header class="site-header">
-        <nav class="container d-flex flex-wrap align-items-center justify-content-between gap-2" aria-label="Navegación principal">
-            <a class="brand" asp-controller="Producto" asp-action="Index">SGCRN <span>Remedios naturales</span></a>
-            <div class="d-flex flex-wrap gap-2 gap-lg-3">
-                <a class="nav-link" asp-controller="MateriaPrima" asp-action="Index">Materias primas · CU01</a>
-                <a class="nav-link" asp-controller="Producto" asp-action="Index">Productos · CU02</a>
-                <a class="nav-link" asp-controller="EntradaInventario" asp-action="Index">Inventario · CU05</a>
-            </div>
-        </nav>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <header class="app-header">
+        <div class="app-header-inner">
+            <a class="brand" asp-controller="Producto" asp-action="Index" aria-label="SGCRN, ir a productos">
+                <span class="brand-mark" aria-hidden="true"><partial name="_Icon" model='@("leaf")' /></span>
+                <span>SGCRN<small>Remedios naturales</small></span>
+            </a>
+            <nav class="main-nav" aria-label="Navegación principal">
+                <a class="@(section == "MateriaPrima" ? "is-active" : "")" aria-current="@(section == "MateriaPrima" ? "page" : null)" asp-controller="MateriaPrima" asp-action="Index">Materias primas</a>
+                <a class="@(section == "Producto" ? "is-active" : "")" aria-current="@(section == "Producto" ? "page" : null)" asp-controller="Producto" asp-action="Index">Productos</a>
+                <a class="@(section == "EntradaInventario" ? "is-active" : "")" aria-current="@(section == "EntradaInventario" ? "page" : null)" asp-controller="EntradaInventario" asp-action="Index">Entradas</a>
+            </nav>
+            <span class="workspace-label">Catálogos e inventario</span>
+        </div>
     </header>
-    <main class="container py-4 py-lg-5">
-        <div class="eyebrow mb-2">GESTIÓN DE REMEDIOS NATURALES · CU01 · CU02 · CU05</div>
+    <main id="contenido" class="workspace" tabindex="-1">
         @if (TempData["Mensaje"] is string mensaje)
         {
-            <div class="alert alert-success" role="status">@mensaje</div>
+            <div class="notice notice-success" role="status">
+                <partial name="_Icon" model='@("check")' />
+                <span>@mensaje</span>
+                <button type="button" class="icon-button notice-dismiss" aria-label="Cerrar confirmación" data-dismiss-notice hidden><partial name="_Icon" model='@("close")' /></button>
+            </div>
         }
         @RenderBody()
     </main>
-    <footer class="container py-4 text-muted small border-top">
-        Sistema de Gestión y Catálogo de Remedios Naturales · Catálogos y entradas de inventario
-    </footer>
+    <footer class="app-footer"><span>SGCRN</span><span>Gestión de remedios naturales</span></footer>
 </body>
 </html>

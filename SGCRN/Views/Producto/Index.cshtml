@@ -1,73 +1,53 @@
 @model ProductoCatalogoViewModel
 @{
-    ViewData["Title"] = "Catálogo de productos";
+    ViewData["Title"] = "Productos";
+    var filtered = !string.IsNullOrWhiteSpace(Model.Buscar) || Model.Activo.HasValue;
 }
-
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div>
-        <h1>Catálogo de productos · CU02</h1>
-        <p class="text-muted mb-0">Consulta y administra los productos de remedios naturales.</p>
-    </div>
-    <a class="btn btn-success" asp-action="Create">+ Registrar producto</a>
-</div>
-
-<section class="panel mb-4" aria-label="Filtros del catálogo">
-    <form asp-action="Index" method="get" class="row g-3 align-items-end">
-        <div class="col-md-6">
-            <label asp-for="Buscar" class="form-label">Buscar por nombre</label>
-            <input asp-for="Buscar" class="form-control" placeholder="Ej. manzanilla o miel" />
+<header class="page-heading">
+    <div><span class="eyebrow">Catálogos</span><h1>Productos</h1><p class="page-description">Precios, unidades de medida y existencias.</p></div>
+    <a class="button button-primary" asp-action="Create"><partial name="_Icon" model='@("plus")' />Nuevo producto</a>
+</header>
+<section class="data-surface" aria-label="Catálogo de productos" data-catalog="Producto">
+    <form asp-action="Index" method="get" class="catalog-toolbar" role="search" aria-label="Buscar productos">
+        <div class="search-field">
+            <label asp-for="Buscar" class="field-label">Buscar producto</label>
+            <div class="input-wrap"><partial name="_Icon" model='@("search")' /><input asp-for="Buscar" type="search" class="field-control" placeholder="Nombre del producto" /></div>
         </div>
-        <div class="col-md-3">
-            <label asp-for="Activo" class="form-label">Estado</label>
-            <select asp-for="Activo" class="form-select">
-                <option value="">Todos</option>
-                <option value="true">Activos</option>
-                <option value="false">Inactivos</option>
-            </select>
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button class="btn btn-success" type="submit">Consultar</button>
-            <a class="btn btn-outline-secondary" asp-action="Index">Limpiar</a>
-        </div>
+        <div class="filter-field"><label asp-for="Activo" class="field-label">Estado</label><select asp-for="Activo" class="field-control"><option value="">Todos</option><option value="true">Activos</option><option value="false">Inactivos</option></select></div>
+        <button class="button" type="submit">Buscar</button>
+        @if (filtered) { <a class="button button-quiet" asp-action="Index">Limpiar filtros</a> }
     </form>
-</section>
-
-<section class="panel" aria-label="Productos registrados">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h5 mb-0">Productos registrados</h2>
-        <span class="badge text-bg-light">@Model.Productos.Count resultado(s)</span>
-    </div>
     @if (Model.Productos.Count == 0)
     {
-        <div class="alert alert-info mb-0" role="status">No se encontraron productos con los filtros indicados.</div>
+        <div class="empty-state">
+            <partial name="_Icon" model='@(filtered ? "search" : "box")' />
+            <h2>@(filtered ? "No se encontraron productos" : "Aún no hay productos")</h2>
+            <p>@(filtered ? "Prueba con otro nombre o cambia los filtros de búsqueda." : "Agrega tu primer producto para organizar su información y registrar sus entradas.")</p>
+            @if (filtered) { <a class="button" asp-action="Index">Limpiar filtros</a> }
+            else { <a class="button button-primary" asp-action="Create">Crear primer producto</a> }
+        </div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead><tr><th>Producto</th><th>Unidad</th><th class="text-end">Precio</th><th class="text-end">Existencias</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+        <div class="table-scroll" role="region" aria-label="Productos, tabla desplazable" tabindex="0">
+            <table class="records-table">
+                <caption class="visually-hidden">Productos: unidad, precio, existencias, estado y acciones.</caption>
+                <thead><tr><th scope="col">Producto</th><th scope="col">Unidad</th><th scope="col" class="numeric">Precio · MXN</th><th scope="col" class="numeric">Existencias</th><th scope="col">Estado</th><th scope="col" class="numeric">Acciones</th></tr></thead>
                 <tbody>
                 @foreach (var producto in Model.Productos)
                 {
                     <tr>
-                        <td><strong>@producto.Nombre</strong><div class="small text-muted product-description">@producto.Descripcion</div></td>
-                        <td>@producto.UnidadMedida</td>
-                        <td class="text-end text-nowrap">@producto.PrecioSugerido.ToString("C2")</td>
-                        <td class="text-end">@producto.StockActual.ToString("N3")</td>
-                        <td><span class="badge @(producto.Activo ? "text-bg-success" : "text-bg-secondary")">@(producto.Activo ? "Activo" : "Inactivo")</span></td>
-                        <td class="text-end text-nowrap">
-                            <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@producto.Id">Consultar</a>
-                            <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@producto.Id">Editar</a>
-                            @if (producto.Activo)
-                            {
-                                <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@producto.Id">Dar de baja</a>
-                            }
-                        </td>
+                        <td><div class="record-cell"><span class="record-symbol"><partial name="_Icon" model='@("box")' /></span><div><a class="record-name" asp-action="Details" asp-route-id="@producto.Id">@producto.Nombre</a><div class="record-subtitle">@producto.Descripcion</div></div></div></td>
+                        <td class="unit" data-label="Unidad">@producto.UnidadMedida</td>
+                        <td class="numeric" data-label="Precio · MXN">@producto.PrecioSugerido.ToString("C2")</td>
+                        <td class="numeric quantity" data-label="Existencias">@producto.StockActual.ToString("N3")</td>
+                        <td data-label="Estado"><span class="status @(producto.Activo ? "" : "status-inactive")">@(producto.Activo ? "Activo" : "Inactivo")</span></td>
+                        <td class="actions-cell"><div class="row-actions"><a asp-action="Edit" asp-route-id="@producto.Id" aria-label="Editar @producto.Nombre">Editar</a>@if (producto.Activo) { <a class="danger-link" asp-action="Delete" asp-route-id="@producto.Id" aria-label="Dar de baja @producto.Nombre">Dar de baja</a> }</div></td>
                     </tr>
                 }
                 </tbody>
             </table>
         </div>
     }
+    <div class="table-footer"><span data-result-count="@Model.Productos.Count">@Model.Productos.Count @(Model.Productos.Count == 1 ? "producto" : "productos")@(filtered ? " en esta búsqueda" : " en el catálogo")</span><span class="footer-hint">Selecciona un producto para ver su detalle.</span></div>
 </section>
-<p class="small text-muted mt-3">Las existencias son de solo lectura en el catálogo; se incrementan al registrar una entrada (CU05).</p>

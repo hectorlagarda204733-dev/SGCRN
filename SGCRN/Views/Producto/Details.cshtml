@@ -1,27 +1,37 @@
 @model ProductoTerminado
-@{
-    ViewData["Title"] = "Consultar producto";
-}
-
-<h1>Consultar producto</h1>
-<p class="text-muted">Información registrada en el catálogo.</p>
-<article class="panel form-panel">
-    <div class="d-flex justify-content-between gap-3 mb-3">
-        <h2 class="h4">@Model.Nombre</h2>
-        <span class="badge align-self-start @(Model.Activo ? "text-bg-success" : "text-bg-secondary")">@(Model.Activo ? "Activo" : "Inactivo")</span>
-    </div>
-    <p>@(Model.Descripcion ?? "Sin descripción.")</p>
-    <dl class="row">
-        <dt class="col-sm-5">Identificador</dt><dd class="col-sm-7">@Model.Id</dd>
-        <dt class="col-sm-5">Unidad de medida</dt><dd class="col-sm-7">@Model.UnidadMedida</dd>
-        <dt class="col-sm-5">Precio sugerido</dt><dd class="col-sm-7">@Model.PrecioSugerido.ToString("C2")</dd>
-        <dt class="col-sm-5">Existencias actuales (CU05)</dt><dd class="col-sm-7">@Model.StockActual.ToString("N3")</dd>
-        <dt class="col-sm-5">Fecha de registro</dt><dd class="col-sm-7">@Model.CreadoEn.ToString("dd/MM/yyyy HH:mm")</dd>
-        <dt class="col-sm-5">Última actualización</dt><dd class="col-sm-7">@Model.ActualizadoEn.ToString("dd/MM/yyyy HH:mm")</dd>
-        <dt class="col-sm-5">URL de imagen</dt><dd class="col-sm-7 text-break">@(string.IsNullOrWhiteSpace(Model.ImagenUrl) ? "Sin imagen." : Model.ImagenUrl)</dd>
-    </dl>
-    <div class="d-flex justify-content-end gap-2">
-        <a class="btn btn-outline-secondary" asp-action="Index">Volver al catálogo</a>
-        <a class="btn btn-success" asp-action="Edit" asp-route-id="@Model.Id">Editar producto</a>
-    </div>
-</article>
+@{ ViewData["Title"] = Model.Nombre; }
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index" data-catalog-back="Producto">Productos</a><span aria-hidden="true">/</span><span>Detalle</span></nav>
+<header class="page-heading">
+    <div><span class="eyebrow">Producto #@Model.Id.ToString("D4")</span><h1>@Model.Nombre</h1></div>
+    <div class="heading-actions"><span class="status @(Model.Activo ? "" : "status-inactive")">@(Model.Activo ? "Activo" : "Inactivo")</span><a class="button" asp-action="Edit" asp-route-id="@Model.Id"><partial name="_Icon" model='@("edit")' />Editar producto</a></div>
+</header>
+<div class="detail-layout">
+    <article class="detail-panel">
+        <h2>Información del producto</h2>
+        <p class="detail-description">@(string.IsNullOrWhiteSpace(Model.Descripcion) ? "Sin descripción." : Model.Descripcion)</p>
+        <dl class="detail-grid">
+            <div><dt>Unidad de medida</dt><dd>@Model.UnidadMedida</dd></div>
+            <div><dt>Precio sugerido</dt><dd>@Model.PrecioSugerido.ToString("C2") <span class="unit">MXN</span></dd></div>
+            <div><dt>Fecha de registro</dt><dd>@Model.CreadoEn.ToString("dd MMM yyyy, HH:mm")</dd></div>
+            <div><dt>Última actualización</dt><dd>@Model.ActualizadoEn.ToString("dd MMM yyyy, HH:mm")</dd></div>
+        </dl>
+        @if (Model.Activo)
+        {
+            <div class="detail-meta"><a asp-action="Delete" asp-route-id="@Model.Id">Dar de baja este producto</a></div>
+        }
+    </article>
+    <aside>
+        @if (Uri.TryCreate(Model.ImagenUrl, UriKind.Absolute, out var imageUri) && (imageUri.Scheme == "https" || imageUri.Scheme == "http"))
+        {
+            <img class="product-image" src="@Model.ImagenUrl" alt="@Model.Nombre" referrerpolicy="no-referrer" data-product-image />
+        }
+        <section class="detail-panel stock-panel" aria-label="Inventario del producto">
+            <dl><dt>Existencias actuales</dt><dd class="stock-value">@Model.StockActual.ToString("N3")</dd></dl><span class="unit">@Model.UnidadMedida</span>
+            @if (Model.Activo)
+            {
+                <p>Registra una entrada cuando termines una producción.</p><a class="button" asp-controller="EntradaInventario" asp-action="Create"><partial name="_Icon" model='@("entry")' />Registrar entrada</a>
+            }
+            else { <p>Este producto está inactivo y no admite nuevas entradas.</p> }
+        </section>
+    </aside>
+</div>

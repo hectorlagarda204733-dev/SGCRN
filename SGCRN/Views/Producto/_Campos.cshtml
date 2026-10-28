@@ -1,30 +1,14 @@
 @model ProductoTerminadoInput
-
-<div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
-<div class="mb-3">
-    <label asp-for="Nombre" class="form-label"></label>
-    <input asp-for="Nombre" class="form-control" maxlength="150" required />
-    <span asp-validation-for="Nombre" class="text-danger small"></span>
-</div>
-<div class="mb-3">
-    <label asp-for="Descripcion" class="form-label"></label>
-    <textarea asp-for="Descripcion" class="form-control" rows="3" maxlength="500"></textarea>
-    <span asp-validation-for="Descripcion" class="text-danger small"></span>
-</div>
-<div class="row g-3 mb-3">
-    <div class="col-md-6">
-        <label asp-for="UnidadMedida" class="form-label"></label>
-        <input asp-for="UnidadMedida" class="form-control" maxlength="30" placeholder="Ej. Caja de 20 sobres" required />
-        <span asp-validation-for="UnidadMedida" class="text-danger small"></span>
+<section class="form-section" aria-labelledby="producto-info">
+    <div class="section-heading"><h2 id="producto-info">Información del producto</h2><span>Obligatorio, salvo donde se indique.</span></div>
+    <div class="field"><label asp-for="Nombre" class="field-label">Nombre del producto</label><input asp-for="Nombre" class="field-control" maxlength="150" required placeholder="Ej. Infusión de manzanilla" aria-describedby="Nombre-error" /><span asp-validation-for="Nombre" id="Nombre-error"></span></div>
+    <div class="field"><label asp-for="Descripcion" class="field-label">Descripción <span class="optional">Opcional</span></label><textarea asp-for="Descripcion" class="field-control" rows="3" maxlength="500" placeholder="Presentación, ingredientes u otras características." aria-describedby="Descripcion-error"></textarea><span asp-validation-for="Descripcion" id="Descripcion-error"></span></div>
+    <div class="field-row">
+        <div class="field"><label asp-for="UnidadMedida" class="field-label">Unidad de medida</label><input asp-for="UnidadMedida" class="field-control" maxlength="30" required placeholder="Ej. Frasco de 250 g" aria-describedby="unidad-help UnidadMedida-error" /><span class="field-help" id="unidad-help">La presentación con la que llevas el inventario.</span><span asp-validation-for="UnidadMedida" id="UnidadMedida-error"></span></div>
+        <div class="field"><label asp-for="PrecioSugerido" class="field-label">Precio sugerido · MXN</label><input asp-for="PrecioSugerido" class="field-control" type="number" step="0.01" min="0" max="999999999999" inputmode="decimal" required aria-describedby="precio-help PrecioSugerido-error" /><span class="field-help" id="precio-help">Precio por unidad de medida.</span><span asp-validation-for="PrecioSugerido" id="PrecioSugerido-error"></span></div>
     </div>
-    <div class="col-md-6">
-        <label asp-for="PrecioSugerido" class="form-label"></label>
-        <input asp-for="PrecioSugerido" class="form-control" type="number" step="0.01" min="0" max="999999999999" required />
-        <span asp-validation-for="PrecioSugerido" class="text-danger small"></span>
-    </div>
-</div>
-<div class="mb-4">
-    <label asp-for="ImagenUrl" class="form-label"></label>
-    <input asp-for="ImagenUrl" class="form-control" maxlength="500" placeholder="https://..." />
-    <span asp-validation-for="ImagenUrl" class="text-danger small"></span>
-</div>
+</section>
+<section class="form-section" aria-labelledby="producto-imagen">
+    <div class="section-heading"><h2 id="producto-imagen">Imagen</h2><span>Opcional</span></div>
+    <div class="field"><label asp-for="ImagenUrl" class="field-label">Enlace a la imagen</label><input asp-for="ImagenUrl" type="url" class="field-control" maxlength="500" placeholder="https://…" aria-describedby="imagen-help ImagenUrl-error" /><span class="field-help" id="imagen-help">Usa una dirección pública que comience con https:// o http://.</span><span asp-validation-for="ImagenUrl" id="ImagenUrl-error"></span></div>
+</section>

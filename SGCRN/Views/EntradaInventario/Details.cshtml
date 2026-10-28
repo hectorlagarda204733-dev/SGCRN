@@ -1,20 +1,22 @@
 @model EntradaInventario
 @{
-    ViewData["Title"] = "Consultar entrada";
+    ViewData["Title"] = $"Entrada #{Model.Id:D4}";
+    var name = Model.MateriaPrima?.Nombre ?? Model.ProductoTerminado?.Nombre;
+    var unit = Model.MateriaPrima?.UnidadMedida ?? Model.ProductoTerminado?.UnidadMedida;
 }
-<h1>Consultar entrada · CU05</h1>
-<article class="panel form-panel">
-    <dl class="row">
-        <dt class="col-sm-5">Folio</dt><dd class="col-sm-7">@Model.Id</dd>
-        <dt class="col-sm-5">Fecha</dt><dd class="col-sm-7">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
-        <dt class="col-sm-5">Origen</dt><dd class="col-sm-7">@(Model.TipoOrigen == TipoOrigenEntrada.Compra ? "Compra de insumo" : "Producción terminada")</dd>
-        <dt class="col-sm-5">Destino</dt><dd class="col-sm-7">@(Model.MateriaPrima?.Nombre ?? Model.ProductoTerminado?.Nombre ?? "Sin destino")</dd>
-        <dt class="col-sm-5">Cantidad registrada</dt><dd class="col-sm-7">@Model.Cantidad.ToString("N3")</dd>
-        <dt class="col-sm-5">Costo unitario</dt><dd class="col-sm-7">@Model.CostoUnitario.ToString("C2")</dd>
-        <dt class="col-sm-5">Observaciones</dt><dd class="col-sm-7">@(Model.Observaciones ?? "Sin observaciones.")</dd>
-    </dl>
-    <div class="d-flex justify-content-end gap-2">
-        <a class="btn btn-outline-secondary" asp-action="Index">Ver historial</a>
-        <a class="btn btn-success" asp-action="Create">Registrar otra entrada</a>
-    </div>
-</article>
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index">Entradas</a><span aria-hidden="true">/</span><span>#@Model.Id.ToString("D4")</span></nav>
+<header class="page-heading"><div><span class="eyebrow">Movimiento de inventario</span><h1>Entrada #@Model.Id.ToString("D4")</h1></div><a class="button" asp-action="Create"><partial name="_Icon" model='@("plus")' />Registrar otra entrada</a></header>
+<div class="detail-layout">
+    <article class="detail-panel">
+        <div class="receipt-heading"><div><span class="eyebrow">Artículo recibido</span><h2>@name</h2><span class="type-label">@(Model.TipoOrigen == TipoOrigenEntrada.Compra ? "Compra de materia prima" : "Producción terminada")</span></div><div class="numeric"><div class="receipt-quantity">+@Model.Cantidad.ToString("N3")</div><span class="unit">@unit</span></div></div>
+        <dl class="detail-grid">
+            <div><dt>Folio</dt><dd>@Model.Id</dd></div><div><dt>Fecha de registro</dt><dd>@Model.Fecha.ToString("dd MMM yyyy, HH:mm")</dd></div>
+            <div><dt>Cantidad registrada</dt><dd>@Model.Cantidad.ToString("N3") <span class="unit">@unit</span></dd></div><div><dt>Costo unitario</dt><dd>@Model.CostoUnitario.ToString("C2") <span class="unit">MXN</span></dd></div>
+        </dl>
+        <div class="aside-note"><h2>Observaciones</h2><p class="receipt-notes">@(string.IsNullOrWhiteSpace(Model.Observaciones) ? "Sin observaciones." : Model.Observaciones)</p></div>
+    </article>
+    <aside class="form-aside"><div class="aside-rule"></div><h2>Entrada registrada</h2><p>Esta cantidad ya se agregó al inventario del artículo. El registro se conserva como parte de su historial.</p>
+        @if (Model.MateriaPrimaId is long materiaId) { <a asp-controller="MateriaPrima" asp-action="Details" asp-route-id="@materiaId">Ver materia prima <partial name="_Icon" model='@("arrow")' /></a> }
+        else if (Model.ProductoTerminadoId is long productoId) { <a asp-controller="Producto" asp-action="Details" asp-route-id="@productoId">Ver producto <partial name="_Icon" model='@("arrow")' /></a> }
+    </aside>
+</div>

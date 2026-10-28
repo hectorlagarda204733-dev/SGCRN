@@ -1,0 +1,7 @@
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="notice notice-error form-errors" role="alert" tabindex="-1" data-form-errors>
+        <partial name="_Icon" model='@("warning")' />
+        <div><strong>Revisa la información antes de guardar.</strong><div asp-validation-summary="All"></div></div>
+    </div>
+}

@@ -1,21 +1,14 @@
 @model ProductoTerminado
-@{
-    ViewData["Title"] = "Baja lógica de producto";
-}
-
-<h1>Baja lógica de producto</h1>
-<p class="text-muted">Confirma la operación antes de continuar.</p>
-<div class="panel form-panel">
-    <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
-        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
-        <p>¿Deseas dar de baja el producto <strong>@Model.Nombre</strong>?</p>
-        <div class="alert alert-warning">El estado cambiará a <strong>Inactivo</strong>. Su información permanecerá guardada.</div>
-        <div class="d-flex justify-content-end gap-2">
-            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
-            @if (Model.Activo)
-            {
-                <button class="btn btn-danger" type="submit">Confirmar baja</button>
-            }
-        </div>
-    </form>
-</div>
+@{ ViewData["Title"] = "Dar de baja producto"; }
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index" data-catalog-back="Producto">Productos</a><span aria-hidden="true">/</span><a asp-action="Details" asp-route-id="@Model.Id">@Model.Nombre</a><span aria-hidden="true">/</span><span>Dar de baja</span></nav>
+<partial name="_FormFeedback" />
+<form class="form-sheet confirmation" asp-action="Delete" asp-route-id="@Model.Id" method="post" data-save-form>
+    <div class="form-section">
+        <span class="confirmation-symbol"><partial name="_Icon" model='@("warning")' /></span>
+        <h1>@(Model.Activo ? "¿Dar de baja este producto?" : "Este producto ya está inactivo")</h1>
+        <div class="record-reference">@Model.Nombre</div>
+        <p>Su información y su historial se conservarán. Mientras esté inactivo, no podrás registrar nuevas entradas para este producto.</p>
+        <p>Las existencias actuales no se modificarán.</p>
+    </div>
+    <div class="form-actions"><a class="button" asp-action="Details" asp-route-id="@Model.Id">@(Model.Activo ? "Cancelar" : "Volver al producto")</a>@if (Model.Activo) { <button class="button button-danger" type="submit">Dar de baja</button> }</div>
+</form>
