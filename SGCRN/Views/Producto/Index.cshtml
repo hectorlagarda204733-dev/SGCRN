@@ -36,8 +36,21 @@
                 <tbody>
                 @foreach (var producto in Model.Productos)
                 {
+                    var tieneImagen = SGCRN.Services.ImagenProductoService.EsLocal(producto.ImagenUrl)
+                        || (Uri.TryCreate(producto.ImagenUrl, UriKind.Absolute, out var imagenUri) && (imagenUri.Scheme == "https" || imagenUri.Scheme == "http"));
                     <tr>
-                        <td><div class="record-cell"><span class="record-symbol"><partial name="_Icon" model='@("box")' /></span><div><a class="record-name" asp-action="Details" asp-route-id="@producto.Id">@producto.Nombre</a><div class="record-subtitle">@producto.Descripcion</div></div></div></td>
+                        <td>
+                            <div class="record-cell">
+                                <span class="record-thumbnail">
+                                    @if (tieneImagen)
+                                    {
+                                        <img src="@producto.ImagenUrl" alt="Foto de @producto.Nombre" width="56" height="56" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-product-image />
+                                    }
+                                    <span hidden="@tieneImagen" data-product-image-fallback role="img" aria-label="Sin imagen" title="Sin imagen"><partial name="_Icon" model='@("box")' /></span>
+                                </span>
+                                <div><a class="record-name" asp-action="Details" asp-route-id="@producto.Id">@producto.Nombre</a><div class="record-subtitle">@producto.Descripcion</div></div>
+                            </div>
+                        </td>
                         <td class="unit" data-label="Unidad">@producto.UnidadMedida</td>
                         <td class="numeric" data-label="Precio · MXN">@producto.PrecioSugerido.ToString("C2")</td>
                         <td class="numeric quantity" data-label="Existencias">@producto.StockActual.ToString("N3")</td>

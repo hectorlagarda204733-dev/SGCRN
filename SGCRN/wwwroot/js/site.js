@@ -53,7 +53,11 @@
     } catch { /* Storage can be disabled; ordinary links remain usable. */ }
 
     document.querySelectorAll('[data-product-image]').forEach(image => {
-        const hideBroken = () => { image.hidden = true; };
+        const hideBroken = () => {
+            image.hidden = true;
+            const fallback = image.parentElement.querySelector('[data-product-image-fallback]');
+            if (fallback) fallback.hidden = false;
+        };
         image.addEventListener('error', hideBroken);
         if (image.complete && !image.naturalWidth) hideBroken();
     });

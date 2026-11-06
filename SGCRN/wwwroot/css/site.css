@@ -111,6 +111,8 @@ textarea.field-control { resize: vertical; min-height: 105px; }
 .record-subtitle { font-size: 12px; color: var(--muted); margin-top: 4px; max-width: 360px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 .record-cell { display: flex; align-items: center; gap: 14px; min-width: 210px; }
 .record-symbol { width: 38px; height: 42px; background: #edf0e8; color: #53694d; display: grid; place-items: center; flex-shrink: 0; border: 1px solid #e0e5da; border-radius: 2px; }
+.record-thumbnail { width: 56px; height: 56px; flex-shrink: 0; display: grid; place-items: center; overflow: hidden; background: #edf0e8; color: #53694d; border: 1px solid #e0e5da; border-radius: 2px; }
+.record-thumbnail img { width: 100%; height: 100%; object-fit: contain; background: #fffefa; }
 .numeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .quantity { font-weight: 600; }
 .unit { color: var(--muted); font-size: 12px; font-weight: 400; }
