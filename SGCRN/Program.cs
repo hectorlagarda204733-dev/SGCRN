@@ -10,6 +10,7 @@ builder.Services.AddDbContext<SGCRNDbContext>(options =>
         ?? throw new InvalidOperationException("Configure la conexión SGCRN en User Secrets.")));
 builder.Services.AddScoped<ProductoRepository>();
 builder.Services.AddScoped<ProductoTerminadoService>();
+builder.Services.AddScoped<ImagenProductoService>();
 builder.Services.AddScoped<MateriaPrimaRepository>();
 builder.Services.AddScoped<MateriaPrimaService>();
 builder.Services.AddScoped<EntradaInventarioRepository>();

@@ -20,7 +20,7 @@
         <dl><dt>Existencias actuales</dt><dd class="stock-value">@Model.StockActual.ToString("N3")</dd></dl><span class="unit">@Model.UnidadMedida</span>
         @if (Model.Activo)
         {
-            <p>Registra una entrada cuando recibas una compra.</p><a class="button" asp-controller="EntradaInventario" asp-action="Create"><partial name="_Icon" model='@("entry")' />Registrar entrada</a>
+            <p>Registra una entrada cuando recibas una compra.</p><a class="button" asp-controller="EntradaInventario" asp-action="Create" asp-route-materiaId="@Model.Id"><partial name="_Icon" model='@("entry")' />Registrar entrada</a>
         }
         else { <p>Esta materia prima está inactiva y no admite nuevas entradas.</p> }
     </aside>

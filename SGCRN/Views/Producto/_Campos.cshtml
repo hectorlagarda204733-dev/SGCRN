@@ -8,7 +8,29 @@
         <div class="field"><label asp-for="PrecioSugerido" class="field-label">Precio sugerido · MXN</label><input asp-for="PrecioSugerido" class="field-control" type="number" step="0.01" min="0" max="999999999999" inputmode="decimal" required aria-describedby="precio-help PrecioSugerido-error" /><span class="field-help" id="precio-help">Precio por unidad de medida.</span><span asp-validation-for="PrecioSugerido" id="PrecioSugerido-error"></span></div>
     </div>
 </section>
-<section class="form-section" aria-labelledby="producto-imagen">
+<section class="form-section" aria-labelledby="producto-imagen" data-image-editor data-current-image="@Model.ImagenActual">
     <div class="section-heading"><h2 id="producto-imagen">Imagen</h2><span>Opcional</span></div>
-    <div class="field"><label asp-for="ImagenUrl" class="field-label">Enlace a la imagen</label><input asp-for="ImagenUrl" type="url" class="field-control" maxlength="500" placeholder="https://…" aria-describedby="imagen-help ImagenUrl-error" /><span class="field-help" id="imagen-help">Usa una dirección pública que comience con https:// o http://.</span><span asp-validation-for="ImagenUrl" id="ImagenUrl-error"></span></div>
+    <div class="image-dropzone" tabindex="0" role="group" aria-label="Adjuntar imagen del producto" aria-describedby="archivo-help" data-image-drop>
+        <partial name="_Icon" model='@("box")' />
+        <strong>Arrastra una imagen o pégala aquí</strong>
+        <label asp-for="ImagenArchivo" class="field-label">También puedes seleccionar un archivo</label>
+        <input asp-for="ImagenArchivo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="archivo-help ImagenArchivo-error" />
+        <span class="field-help" id="archivo-help">JPG, PNG o WebP · Hasta 2 MB. Para pegar, enfoca esta zona y usa Ctrl+V.</span>
+    </div>
+    <span asp-validation-for="ImagenArchivo" id="ImagenArchivo-error"></span>
+    <p class="field-help" data-image-message role="status"></p>
+    <figure class="image-preview" data-image-preview hidden><img alt="Vista previa de la imagen del producto" /><figcaption data-image-caption></figcaption></figure>
+    <button type="button" class="button button-quiet" data-image-reset hidden>Descartar selección</button>
+    @if (!string.IsNullOrWhiteSpace(Model.ImagenActual))
+    {
+        <p class="field-help">La imagen actual se conserva si no eliges otra.</p>
+        <label class="image-remove"><input asp-for="QuitarImagen" /> Quitar la imagen actual al guardar</label>
+    }
+    <details class="image-url-option"><summary>Usar un enlace en lugar de un archivo</summary>
+        <div class="field"><label asp-for="ImagenUrl" class="field-label">Enlace a la imagen</label><input asp-for="ImagenUrl" type="url" class="field-control" maxlength="500" placeholder="https://…" aria-describedby="imagen-help ImagenUrl-error" /><span class="field-help" id="imagen-help">Dirección pública http:// o https://. Al usar un enlace se descarta el archivo seleccionado.</span><span asp-validation-for="ImagenUrl" id="ImagenUrl-error"></span></div>
+    </details>
+    @if (Model.ImagenArchivo is not null)
+    {
+        <p class="field-help">Vuelve a seleccionar el archivo antes de guardar; el navegador no lo conserva al mostrar errores.</p>
+    }
 </section>

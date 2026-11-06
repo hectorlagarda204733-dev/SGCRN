@@ -4,7 +4,7 @@
 <header class="page-heading"><div><h1>Nuevo producto</h1><p class="page-description">Define la presentación y el precio del producto.</p></div></header>
 <partial name="_FormFeedback" />
 <div class="form-layout">
-    <form class="form-sheet" asp-action="Create" method="post" novalidate data-save-form>
+    <form class="form-sheet" asp-action="Create" method="post" enctype="multipart/form-data" novalidate data-save-form>
         <partial name="_Campos" model="Model" />
         <div class="form-actions"><a class="button button-quiet" asp-action="Index" data-catalog-back="Producto">Cancelar</a><button class="button button-primary" type="submit">Crear producto</button></div>
     </form>

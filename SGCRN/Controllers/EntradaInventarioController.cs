@@ -18,10 +18,21 @@ public class EntradaInventarioController(InventarioService service) : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(long? productoId, long? materiaId)
     {
         await LoadDestinosAsync();
-        return View(new EntradaInventarioInput());
+        var input = new EntradaInventarioInput();
+        if (productoId is not null && materiaId is null && ((IReadOnlyList<ProductoTerminado>)ViewData["Productos"]!).Any(x => x.Id == productoId))
+        {
+            input.TipoOrigen = TipoOrigenEntrada.Produccion;
+            input.ProductoTerminadoId = productoId;
+        }
+        else if (materiaId is not null && productoId is null && ((IReadOnlyList<MateriaPrima>)ViewData["MateriasPrimas"]!).Any(x => x.Id == materiaId))
+        {
+            input.TipoOrigen = TipoOrigenEntrada.Compra;
+            input.MateriaPrimaId = materiaId;
+        }
+        return View(input);
     }
 
     [HttpPost]

@@ -12,6 +12,25 @@ Aplicación ASP.NET Core 10 **MVC** para los casos de uso priorizados del Sistem
 
 Se usa **EF Core 10 / MySql.EntityFrameworkCore**, MySQL 8 y vistas Razor con Bootstrap local. El incremento condicional de stock emplea SQL parametrizado a través de `DbContext` dentro de una transacción para evitar pérdidas entre entradas concurrentes. El acceso a catálogos, entradas y registros se realiza mediante repositorios y servicios.
 
+## Imágenes y navegación
+
+Los productos admiten una imagen JPG, PNG o WebP mediante selección de archivo,
+arrastre o pegado en la zona de carga. También se puede usar un enlace HTTP(S).
+Se incluye vista previa, reemplazo y eliminación de la referencia desde edición.
+El límite es 2 MB, 6000 px por lado y 16 megapíxeles. El servidor decodifica el
+archivo, normaliza su orientación y lo guarda como PNG de hasta 1600 px por lado.
+
+Los archivos se guardan en `SGCRN/wwwroot/uploads/productos/`, excluidos de Git.
+En un despliegue, esta carpeta debe ser persistente y respaldarse junto con MySQL.
+Al reemplazar o quitar una imagen se conserva el archivo anterior; solo se
+descartan automáticamente las cargas nuevas cuyo registro falla.
+El procesamiento utiliza SkiaSharp (licencia MIT), con componentes nativos para
+Windows y Linux. No requiere modificar el esquema de la base de datos.
+
+La navegación incluye regreso visible, retorno después de guardar y conservación
+de filtros por pestaña. Las entradas abiertas desde una ficha preseleccionan el
+artículo. Las transiciones respetan la preferencia de movimiento reducido.
+
 ## Abrir y ejecutar
 
 1. Instala .NET 10 SDK y MySQL 8 (con el servicio iniciado).

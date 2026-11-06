@@ -1,4 +1,27 @@
 /* SGCRN: a quiet, work-focused interface. Spacing follows a 4px rhythm. */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 160ms; }
+.back-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; font-weight: 600; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.back-link .icon { width: 18px; height: 18px; }
+.navigation-progress { position: fixed; z-index: 1000; inset: 0 0 auto; height: 3px; background: var(--green); transform: scaleX(0); transform-origin: left; opacity: 0; }
+.is-navigating .navigation-progress { opacity: 1; animation: navigation-progress 6s ease-out forwards; }
+@keyframes navigation-progress { from { transform: scaleX(.1); } to { transform: scaleX(.9); } }
+.image-dropzone { border: 1px dashed var(--line-strong); padding: 24px; display: grid; gap: 10px; background: var(--paper); transition: background 160ms, border-color 160ms; }
+.image-dropzone.is-dragging { background: var(--green-wash); border-color: var(--green); outline: 2px solid var(--green); }
+.image-dropzone input { max-width: 100%; font-size: 13px; }
+.image-dropzone input::file-selector-button { padding: 9px 12px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); border-radius: 3px; margin-right: 12px; cursor: pointer; }
+.image-preview { margin: 20px 0; padding: 16px; border: 1px solid var(--line); background: var(--paper); }
+.image-preview img { display: block; width: 100%; height: 220px; object-fit: contain; }
+.image-preview figcaption { margin-top: 12px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.image-remove { display: flex; gap: 10px; align-items: center; margin: 16px 0; font-size: 13px; }
+.image-url-option { margin-top: 20px; }
+.image-url-option summary { cursor: pointer; font-size: 13px; padding: 8px 0; }
+.image-url-option .field { margin-top: 12px; }
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+    .is-navigating .navigation-progress { animation: none; transform: scaleX(.6); }
+}
 :root {
     --paper: #f5f4ef; --surface: #fffefa; --ink: #252b28; --muted: #626b64;
     --line: #d8ddd4; --line-strong: #849181; --green: #243e36; --green-hover: #142b24;

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SGCRN.Models;
 using SGCRN.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace SGCRN.Controllers;
 
@@ -23,7 +24,8 @@ public class ProductoController(ProductoTerminadoService productoService) : Cont
     public IActionResult Create() => View(new ProductoTerminadoInput());
 
     [HttpPost]
-    public async Task<IActionResult> Create(ProductoTerminadoInput input)
+    [RequestSizeLimit(3145728)]
+    public async Task<IActionResult> Create(ProductoTerminadoInput input, string? returnUrl)
     {
         if (!ModelState.IsValid) return View(input);
 
@@ -31,11 +33,16 @@ public class ProductoController(ProductoTerminadoService productoService) : Cont
         {
             await productoService.CreateAsync(input);
             TempData["Mensaje"] = "Producto registrado correctamente.";
-            return RedirectToAction(nameof(Index));
+            return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Index));
         }
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError(nameof(input.Nombre), ex.Message);
+            return View(input);
+        }
+        catch (ValidationException ex)
+        {
+            ModelState.AddModelError(nameof(input.ImagenArchivo), ex.Message);
             return View(input);
         }
     }
@@ -57,27 +64,35 @@ public class ProductoController(ProductoTerminadoService productoService) : Cont
         {
             Nombre = producto.Nombre,
             Descripcion = producto.Descripcion,
-            ImagenUrl = producto.ImagenUrl,
+            ImagenActual = producto.ImagenUrl,
             UnidadMedida = producto.UnidadMedida,
             PrecioSugerido = producto.PrecioSugerido
         });
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(long id, ProductoTerminadoInput input)
+    [RequestSizeLimit(3145728)]
+    public async Task<IActionResult> Edit(long id, ProductoTerminadoInput input, string? returnUrl)
     {
-        if (await productoService.GetByIdAsync(id) is null) return NotFound();
+        var producto = await productoService.GetByIdAsync(id);
+        if (producto is null) return NotFound();
+        input.ImagenActual = producto.ImagenUrl;
         if (!ModelState.IsValid) return View(input);
 
         try
         {
             await productoService.UpdateAsync(id, input);
             TempData["Mensaje"] = "Producto actualizado correctamente.";
-            return RedirectToAction(nameof(Index));
+            return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Index));
         }
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError(nameof(input.Nombre), ex.Message);
+            return View(input);
+        }
+        catch (ValidationException ex)
+        {
+            ModelState.AddModelError(nameof(input.ImagenArchivo), ex.Message);
             return View(input);
         }
     }
@@ -90,7 +105,7 @@ public class ProductoController(ProductoTerminadoService productoService) : Cont
     }
 
     [HttpPost, ActionName("Delete")]
-    public async Task<IActionResult> DeleteConfirmed(long id)
+    public async Task<IActionResult> DeleteConfirmed(long id, string? returnUrl)
     {
         var producto = await productoService.GetByIdAsync(id);
         if (producto is null) return NotFound();
@@ -99,7 +114,7 @@ public class ProductoController(ProductoTerminadoService productoService) : Cont
         {
             await productoService.DeactivateAsync(id);
             TempData["Mensaje"] = "Producto dado de baja. El registro se conserva en la base de datos.";
-            return RedirectToAction(nameof(Index));
+            return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Index));
         }
         catch (InvalidOperationException ex)
         {

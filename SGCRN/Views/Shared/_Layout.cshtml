@@ -1,5 +1,6 @@
 @{
     var section = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
 }
 <!DOCTYPE html>
 <html lang="es-MX">
@@ -12,8 +13,10 @@
     <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <script src="~/js/site.js" asp-append-version="true" defer></script>
+    <script src="~/js/experience.js" asp-append-version="true" defer></script>
 </head>
-<body>
+<body data-section="@(section)" data-action="@action">
+    <div class="navigation-progress" aria-hidden="true"></div>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <header class="app-header">
         <div class="app-header-inner">
@@ -30,6 +33,10 @@
         </div>
     </header>
     <main id="contenido" class="workspace" tabindex="-1">
+        @if (action != "Index")
+        {
+            <a class="back-link" asp-controller="@(section == "Home" ? "Producto" : section)" asp-action="Index" data-return-link><partial name="_Icon" model='@("back")' /><span>Volver al listado</span></a>
+        }
         @if (TempData["Mensaje"] is string mensaje)
         {
             <div class="notice notice-success" role="status">

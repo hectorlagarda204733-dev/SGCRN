@@ -16,6 +16,14 @@ public class ProductoTerminadoInput : IValidatableObject
     [StringLength(500)]
     public string? ImagenUrl { get; set; }
 
+    [Display(Name = "Archivo de imagen")]
+    public IFormFile? ImagenArchivo { get; set; }
+
+    public bool QuitarImagen { get; set; }
+
+    [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever]
+    public string? ImagenActual { get; set; }
+
     [Display(Name = "Unidad de medida")]
     [Required(ErrorMessage = "La unidad de medida es obligatoria.")]
     [StringLength(30)]
@@ -27,6 +35,12 @@ public class ProductoTerminadoInput : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        if (ImagenArchivo is { Length: > 2097152 })
+            yield return new("La imagen debe pesar como máximo 2 MB.", [nameof(ImagenArchivo)]);
+        if (ImagenArchivo is not null && !string.IsNullOrWhiteSpace(ImagenUrl))
+            yield return new("Elige un archivo o un enlace, no ambos.", [nameof(ImagenArchivo)]);
+        if (QuitarImagen && (ImagenArchivo is not null || !string.IsNullOrWhiteSpace(ImagenUrl)))
+            yield return new("Para quitar la imagen, borra primero el archivo o enlace seleccionado.", [nameof(ImagenArchivo)]);
         if (decimal.Round(PrecioSugerido, 2) != PrecioSugerido)
             yield return new("El precio admite hasta dos decimales.", [nameof(PrecioSugerido)]);
 

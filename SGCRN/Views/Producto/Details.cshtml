@@ -21,7 +21,7 @@
         }
     </article>
     <aside>
-        @if (Uri.TryCreate(Model.ImagenUrl, UriKind.Absolute, out var imageUri) && (imageUri.Scheme == "https" || imageUri.Scheme == "http"))
+        @if (SGCRN.Services.ImagenProductoService.EsLocal(Model.ImagenUrl) || (Uri.TryCreate(Model.ImagenUrl, UriKind.Absolute, out var imageUri) && (imageUri.Scheme == "https" || imageUri.Scheme == "http")))
         {
             <img class="product-image" src="@Model.ImagenUrl" alt="@Model.Nombre" referrerpolicy="no-referrer" data-product-image />
         }
@@ -29,7 +29,7 @@
             <dl><dt>Existencias actuales</dt><dd class="stock-value">@Model.StockActual.ToString("N3")</dd></dl><span class="unit">@Model.UnidadMedida</span>
             @if (Model.Activo)
             {
-                <p>Registra una entrada cuando termines una producción.</p><a class="button" asp-controller="EntradaInventario" asp-action="Create"><partial name="_Icon" model='@("entry")' />Registrar entrada</a>
+                <p>Registra una entrada cuando termines una producción.</p><a class="button" asp-controller="EntradaInventario" asp-action="Create" asp-route-productoId="@Model.Id"><partial name="_Icon" model='@("entry")' />Registrar entrada</a>
             }
             else { <p>Este producto está inactivo y no admite nuevas entradas.</p> }
         </section>

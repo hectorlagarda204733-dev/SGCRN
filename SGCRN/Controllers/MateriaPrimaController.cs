@@ -19,14 +19,14 @@ public class MateriaPrimaController(MateriaPrimaService service) : Controller
     public IActionResult Create() => View(new MateriaPrimaInput());
 
     [HttpPost]
-    public async Task<IActionResult> Create(MateriaPrimaInput input)
+    public async Task<IActionResult> Create(MateriaPrimaInput input, string? returnUrl)
     {
         if (!ModelState.IsValid) return View(input);
         try
         {
             await service.CreateAsync(input);
             TempData["Mensaje"] = "Materia prima registrada correctamente.";
-            return RedirectToAction(nameof(Index));
+            return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Index));
         }
         catch (InvalidOperationException ex)
         {
@@ -55,7 +55,7 @@ public class MateriaPrimaController(MateriaPrimaService service) : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(long id, MateriaPrimaInput input)
+    public async Task<IActionResult> Edit(long id, MateriaPrimaInput input, string? returnUrl)
     {
         if (await service.GetByIdAsync(id) is null) return NotFound();
         if (!ModelState.IsValid) return View(input);
@@ -63,7 +63,7 @@ public class MateriaPrimaController(MateriaPrimaService service) : Controller
         {
             await service.UpdateAsync(id, input);
             TempData["Mensaje"] = "Materia prima actualizada correctamente.";
-            return RedirectToAction(nameof(Index));
+            return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Index));
         }
         catch (InvalidOperationException ex)
         {
@@ -80,7 +80,7 @@ public class MateriaPrimaController(MateriaPrimaService service) : Controller
     }
 
     [HttpPost, ActionName("Delete")]
-    public async Task<IActionResult> DeleteConfirmed(long id)
+    public async Task<IActionResult> DeleteConfirmed(long id, string? returnUrl)
     {
         var materia = await service.GetByIdAsync(id);
         if (materia is null) return NotFound();
@@ -88,7 +88,7 @@ public class MateriaPrimaController(MateriaPrimaService service) : Controller
         {
             await service.DeactivateAsync(id);
             TempData["Mensaje"] = "Materia prima dada de baja; el registro y sus entradas se conservan.";
-            return RedirectToAction(nameof(Index));
+            return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Index));
         }
         catch (InvalidOperationException ex)
         {
