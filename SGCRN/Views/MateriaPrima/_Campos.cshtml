@@ -3,5 +3,25 @@
     <div class="section-heading"><h2 id="materia-info">Información de la materia prima</h2><span>Obligatorio, salvo donde se indique.</span></div>
     <div class="field"><label asp-for="Nombre" class="field-label">Nombre</label><input asp-for="Nombre" class="field-control" maxlength="150" required placeholder="Ej. Flor de manzanilla" aria-describedby="Nombre-error" /><span asp-validation-for="Nombre" id="Nombre-error"></span></div>
     <div class="field"><label asp-for="Descripcion" class="field-label">Descripción <span class="optional">Opcional</span></label><textarea asp-for="Descripcion" class="field-control" rows="3" maxlength="500" placeholder="Características que te ayuden a identificar este insumo." aria-describedby="Descripcion-error"></textarea><span asp-validation-for="Descripcion" id="Descripcion-error"></span></div>
-    <div class="field"><label asp-for="UnidadMedida" class="field-label">Unidad de medida</label><input asp-for="UnidadMedida" class="field-control" maxlength="30" required placeholder="Ej. kg, litro o pieza" aria-describedby="unidad-help UnidadMedida-error" /><span class="field-help" id="unidad-help">Usa la misma unidad al registrar tus entradas.</span><span asp-validation-for="UnidadMedida" id="UnidadMedida-error"></span></div>
+    <div class="field">
+        <label asp-for="UnidadMedida" class="field-label">Unidad de medida</label>
+        <select asp-for="UnidadMedida" class="field-control" required aria-describedby="unidad-help UnidadMedida-error">
+            <option value="">Selecciona una unidad</option>
+            @foreach (var grupo in CatalogoUnidadesMedida.Todas.GroupBy(unidad => unidad.Grupo))
+            {
+                <optgroup label="@grupo.Key">
+                    @foreach (var unidad in grupo)
+                    {
+                        <option value="@unidad.Valor">@unidad.Nombre</option>
+                    }
+                </optgroup>
+            }
+        </select>
+        <span class="field-help" id="unidad-help">Las entradas y las existencias se expresan en esta unidad. Para cajas o paquetes, indica su contenido en la descripción.</span>
+        @if (!string.IsNullOrWhiteSpace(Model.UnidadMedida) && !CatalogoUnidadesMedida.Contiene(Model.UnidadMedida))
+        {
+            <span class="field-help">La unidad «@Model.UnidadMedida» no pertenece al catálogo. Selecciona una opción válida; no se convertirán automáticamente las existencias.</span>
+        }
+        <span asp-validation-for="UnidadMedida" id="UnidadMedida-error"></span>
+    </div>
 </section>
