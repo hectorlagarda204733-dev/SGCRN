@@ -1,0 +1,17 @@
+@model ClientePuntoVentaInput
+@{ ViewData["Title"] = "Nuevo destinatario"; }
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index">Clientes y puntos de venta</a><span aria-hidden="true">/</span><span>Nuevo</span></nav>
+<header class="page-heading"><div><h1>Nuevo destinatario</h1><p class="page-description">Identifica a quién se entregarán los productos.</p></div></header>
+<partial name="_FormFeedback" />
+<div class="form-layout">
+    <form asp-action="Create" method="post" class="form-sheet" data-save-form novalidate>
+        <input type="hidden" name="productoId" value="@ViewData["ProductoId"]" />
+        <section class="form-section"><div class="section-heading"><h2>Datos del destinatario</h2><span>Obligatorio, salvo donde se indique.</span></div>
+            <div class="field"><label asp-for="NombreTienda" class="field-label">Nombre del cliente o establecimiento</label><input asp-for="NombreTienda" class="field-control" required maxlength="150" aria-describedby="NombreTienda-error" /><span asp-validation-for="NombreTienda" id="NombreTienda-error"></span></div>
+            <div class="field"><label asp-for="Contacto" class="field-label">Contacto <span class="optional">Opcional</span></label><input asp-for="Contacto" class="field-control" maxlength="150" aria-describedby="Contacto-error" placeholder="Persona de contacto, teléfono o correo" /><span asp-validation-for="Contacto" id="Contacto-error"></span></div>
+            <div class="field"><label asp-for="Direccion" class="field-label">Dirección <span class="optional">Opcional</span></label><textarea asp-for="Direccion" class="field-control" maxlength="300" rows="3" aria-describedby="Direccion-error"></textarea><span asp-validation-for="Direccion" id="Direccion-error"></span></div>
+        </section>
+        <div class="form-actions"><a class="button button-quiet" asp-action="Index">Cancelar</a><button class="button button-primary" type="submit">Guardar y registrar salida</button></div>
+    </form>
+    <aside class="form-aside"><div class="aside-rule"></div><h2>Un destino identificable</h2><p>Usa un nombre que permita reconocer a quién se entregó la mercancía. Al guardar podrás seleccionarlo en una salida.</p></aside>
+</div>

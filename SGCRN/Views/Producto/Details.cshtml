@@ -30,6 +30,7 @@
             @if (Model.Activo)
             {
                 <p>Registra una entrada cuando termines una producción.</p><a class="button" asp-controller="EntradaInventario" asp-action="Create" asp-route-productoId="@Model.Id"><partial name="_Icon" model='@("entry")' />Registrar entrada</a>
+                <p>Registra una salida cuando vendas o entregues este producto.</p><a class="button" asp-controller="SalidaDistribucion" asp-action="Create" asp-route-productoId="@Model.Id">Registrar salida</a>
             }
             else { <p>Este producto está inactivo y no admite nuevas entradas.</p> }
         </section>

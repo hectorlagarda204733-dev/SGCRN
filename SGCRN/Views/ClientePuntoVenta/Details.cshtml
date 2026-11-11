@@ -1,0 +1,5 @@
+@model ClientePuntoVenta
+@{ ViewData["Title"] = Model.NombreTienda; }
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index">Clientes y puntos de venta</a><span aria-hidden="true">/</span><span>Detalle</span></nav>
+<header class="page-heading"><div><span class="eyebrow">Destinatario #@Model.Id.ToString("D4")</span><h1>@Model.NombreTienda</h1></div><a class="button button-primary" asp-controller="SalidaDistribucion" asp-action="Create" asp-route-clienteId="@Model.Id">Registrar salida</a></header>
+<article class="detail-panel"><h2>Información del destinatario</h2><dl class="detail-grid"><div><dt>Contacto</dt><dd>@(Model.Contacto ?? "Sin contacto")</dd></div><div><dt>Dirección</dt><dd>@(Model.Direccion ?? "Sin dirección")</dd></div><div><dt>Registro</dt><dd>@Model.CreadoEn.ToString("dd MMM yyyy, HH:mm")</dd></div></dl></article>

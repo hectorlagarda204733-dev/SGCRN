@@ -15,6 +15,10 @@ builder.Services.AddScoped<MateriaPrimaRepository>();
 builder.Services.AddScoped<MateriaPrimaService>();
 builder.Services.AddScoped<EntradaInventarioRepository>();
 builder.Services.AddScoped<InventarioService>();
+builder.Services.AddScoped<ClientePuntoVentaRepository>();
+builder.Services.AddScoped<ClientePuntoVentaService>();
+builder.Services.AddScoped<SalidaDistribucionRepository>();
+builder.Services.AddScoped<SalidaDistribucionService>();
 
 var app = builder.Build();
 

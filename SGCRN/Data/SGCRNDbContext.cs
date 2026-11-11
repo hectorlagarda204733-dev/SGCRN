@@ -8,6 +8,8 @@ public sealed class SGCRNDbContext(DbContextOptions<SGCRNDbContext> options) : D
     public DbSet<ProductoTerminado> ProductosTerminados => Set<ProductoTerminado>();
     public DbSet<MateriaPrima> MateriasPrimas => Set<MateriaPrima>();
     public DbSet<EntradaInventario> EntradasInventario => Set<EntradaInventario>();
+    public DbSet<ClientePuntoVenta> ClientesPuntosVenta => Set<ClientePuntoVenta>();
+    public DbSet<SalidaDistribucion> SalidasDistribucion => Set<SalidaDistribucion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,5 +55,29 @@ public sealed class SGCRNDbContext(DbContextOptions<SGCRNDbContext> options) : D
             .OnDelete(DeleteBehavior.Restrict);
         entradas.HasOne(e => e.ProductoTerminado).WithMany().HasForeignKey(e => e.ProductoTerminadoId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        var clientes = modelBuilder.Entity<ClientePuntoVenta>();
+        clientes.ToTable("ClientesPuntosVenta");
+        clientes.HasKey(c => c.Id);
+        clientes.Property(c => c.Id).ValueGeneratedOnAdd();
+        clientes.Property(c => c.NombreTienda).HasMaxLength(150).IsRequired();
+        clientes.HasIndex(c => c.NombreTienda).IsUnique();
+        clientes.Property(c => c.Contacto).HasMaxLength(150);
+        clientes.Property(c => c.Direccion).HasMaxLength(300);
+        clientes.Property(c => c.CreadoEn).HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAdd();
+
+        var salidas = modelBuilder.Entity<SalidaDistribucion>();
+        salidas.ToTable("SalidasDistribucion");
+        salidas.HasKey(s => s.Id);
+        salidas.Property(s => s.Id).ValueGeneratedOnAdd();
+        salidas.Property(s => s.Fecha).HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAdd();
+        salidas.Property(s => s.TipoSalida).HasConversion<string>().HasMaxLength(20).IsRequired();
+        salidas.Property(s => s.Cantidad).HasColumnType("decimal(18,3)");
+        salidas.Property(s => s.UnidadMedida).HasMaxLength(30).IsRequired();
+        salidas.Property(s => s.Observaciones).HasMaxLength(500);
+        salidas.Property(s => s.ReferenciaRegistro).HasMaxLength(36).IsRequired();
+        salidas.HasIndex(s => s.ReferenciaRegistro).IsUnique();
+        salidas.HasOne(s => s.ProductoTerminado).WithMany().HasForeignKey(s => s.ProductoTerminadoId).OnDelete(DeleteBehavior.Restrict);
+        salidas.HasOne(s => s.ClientePuntoVenta).WithMany().HasForeignKey(s => s.ClientePuntoVentaId).OnDelete(DeleteBehavior.Restrict);
     }
 }

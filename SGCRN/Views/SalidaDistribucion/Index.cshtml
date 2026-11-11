@@ -1,0 +1,19 @@
+@model IReadOnlyList<SalidaDistribucion>
+@{ ViewData["Title"] = "Salidas de inventario"; }
+<header class="page-heading"><div><span class="eyebrow">Inventario</span><h1>Salidas</h1><p class="page-description">Ventas directas y entregas a puntos de venta.</p></div><a class="button button-primary" asp-action="Create"><partial name="_Icon" model='@("plus")' />Registrar salida</a></header>
+<section class="data-surface" aria-label="Historial de salidas">
+    @if (Model.Count == 0)
+    {
+        <div class="empty-state"><partial name="_Icon" model='@("box")' /><h2>Registra tu primera salida</h2><p>Selecciona el producto, a quién lo entregas y la cantidad que sale del inventario.</p><a class="button" asp-action="Create">Registrar salida</a></div>
+    }
+    else
+    {
+        <div class="table-scroll" role="region" aria-label="Salidas, tabla desplazable" tabindex="0"><table class="records-table"><caption class="visually-hidden">Últimas 100 salidas, de más reciente a más antigua</caption><thead><tr><th scope="col">Folio</th><th scope="col">Producto</th><th scope="col">Destinatario</th><th scope="col">Motivo</th><th scope="col">Fecha</th><th scope="col" class="numeric">Cantidad</th></tr></thead><tbody>
+        @foreach (var salida in Model)
+        {
+            <tr><td data-label="Folio"><a class="record-name" asp-action="Details" asp-route-id="@salida.Id">#@salida.Id.ToString("D4")</a></td><td class="article-cell" data-label="Producto">@salida.ProductoTerminado.Nombre</td><td data-label="Destinatario">@salida.ClientePuntoVenta.NombreTienda</td><td data-label="Motivo">@(salida.TipoSalida == TipoSalida.VentaDirecta ? "Venta directa" : "Distribución")</td><td data-label="Fecha">@salida.Fecha.ToString("dd MMM yyyy, HH:mm")</td><td class="numeric" data-label="Cantidad"><span class="quantity">−@salida.Cantidad.ToString("N3")</span><div class="unit">@salida.UnidadMedida</div></td></tr>
+        }
+        </tbody></table></div>
+    }
+    <div class="table-footer"><span>@Model.Count @(Model.Count == 1 ? "salida mostrada" : "salidas mostradas") · Últimas 100</span><span class="footer-hint">De más reciente a más antigua</span></div>
+</section>

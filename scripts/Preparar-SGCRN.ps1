@@ -15,7 +15,7 @@ try {
     $env:MYSQL_PWD = [Net.NetworkCredential]::new('', $AdminPassword).Password
     $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
-    foreach ($file in @('001_esquema.sql', '002_datos_ejemplo.sql')) {
+    foreach ($file in @('001_esquema.sql', '002_datos_ejemplo.sql', '003_salidas_distribucion.sql')) {
         $path = (Join-Path $root "database/migrations/$file").Replace('\', '/')
         & $MySqlPath --host=localhost --user=$AdminUser --default-character-set=utf8mb4 --execute="source $path"
         if ($LASTEXITCODE -ne 0) { throw "Falló la migración $file." }
@@ -36,7 +36,7 @@ GRANT SELECT, INSERT, UPDATE ON SGCRN_Proyecto.* TO 'sgcrn_proyecto'@'localhost'
         dotnet user-secrets set --project (Join-Path $root 'SGCRN/SGCRN.csproj')
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo guardar la conexión en secretos locales.' }
 
-    Write-Host 'SGCRN configurado: SGCRN_Proyecto, tres tablas y catálogos de ejemplo.'
+    Write-Host 'SGCRN configurado: SGCRN_Proyecto, cinco tablas y catálogos de ejemplo.'
     Write-Host 'Ejecuta: dotnet run --project SGCRN/SGCRN.csproj'
     Write-Host 'Abre: http://localhost:5181'
 }

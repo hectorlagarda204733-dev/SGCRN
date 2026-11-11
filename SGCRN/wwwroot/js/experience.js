@@ -3,7 +3,7 @@
     const safePath = value => {
         try {
             const url = new URL(value, location.origin);
-            return url.origin === location.origin && (url.pathname === '/' || /^\/(Producto|MateriaPrima|EntradaInventario)(\/|$)/i.test(url.pathname))
+            return url.origin === location.origin && (url.pathname === '/' || /^\/(Producto|MateriaPrima|EntradaInventario|SalidaDistribucion|ClientePuntoVenta)(\/|$)/i.test(url.pathname))
                 ? url.pathname + url.search : null;
         } catch { return null; }
     };

@@ -1,0 +1,21 @@
+@model IReadOnlyList<ClientePuntoVenta>
+@{ ViewData["Title"] = "Clientes y puntos de venta"; }
+<header class="page-heading"><div><span class="eyebrow">Destinatarios</span><h1>Clientes y puntos de venta</h1><p class="page-description">Personas y establecimientos que reciben tus productos.</p></div><a class="button button-primary" asp-action="Create"><partial name="_Icon" model='@("plus")' />Nuevo destinatario</a></header>
+<section class="data-surface" aria-label="Destinatarios registrados">
+    <form method="get" asp-action="Index" class="catalog-toolbar" role="search">
+        <div class="search-field"><label for="buscar" class="field-label">Buscar por nombre</label><input type="search" name="buscar" id="buscar" value="@ViewData["Buscar"]" class="field-control" /></div><button class="button" type="submit">Buscar</button><a class="button button-quiet" asp-action="Index">Limpiar</a>
+    </form>
+    @if (Model.Count == 0)
+    {
+        <div class="empty-state"><h2>No hay destinatarios para mostrar</h2><p>Registra al cliente o punto de venta antes de entregar productos, o ajusta la búsqueda.</p><a class="button" asp-action="Create">Registrar destinatario</a></div>
+    }
+    else
+    {
+        <div class="table-scroll" role="region" aria-label="Clientes" tabindex="0"><table class="records-table"><caption class="visually-hidden">Clientes y puntos de venta registrados</caption><thead><tr><th scope="col">Nombre</th><th scope="col">Contacto</th><th scope="col">Dirección</th></tr></thead><tbody>
+        @foreach (var cliente in Model)
+        {
+            <tr><td><a class="record-name" asp-action="Details" asp-route-id="@cliente.Id">@cliente.NombreTienda</a></td><td data-label="Contacto">@(cliente.Contacto ?? "Sin contacto")</td><td data-label="Dirección">@(cliente.Direccion ?? "Sin dirección")</td></tr>
+        }
+        </tbody></table></div>
+    }
+</section>

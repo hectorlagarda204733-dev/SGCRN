@@ -1,0 +1,42 @@
+@model SalidaDistribucionInput
+@{
+    ViewData["Title"] = "Registrar salida";
+    var productos = (IReadOnlyList<ProductoTerminado>)ViewData["Productos"]!;
+    var clientes = (IReadOnlyList<ClientePuntoVenta>)ViewData["Clientes"]!;
+}
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index">Salidas</a><span aria-hidden="true">/</span><span>Registrar salida</span></nav>
+<header class="page-heading"><div><h1>Registrar salida</h1><p class="page-description">Entrega productos y descuenta la cantidad de tu inventario.</p></div></header>
+<partial name="_FormFeedback" />
+<div class="form-layout">
+    <form asp-action="Create" method="post" class="form-sheet" novalidate data-save-form data-outgoing-form>
+        <input asp-for="ReferenciaRegistro" type="hidden" />
+        <section class="form-section" aria-labelledby="salida-destino">
+            <div class="section-heading"><h2 id="salida-destino">01 · Producto y destinatario</h2></div>
+            <fieldset class="field"><legend class="field-label">¿Por qué sale el producto?</legend><div class="choice-group">
+                <label class="choice"><input asp-for="TipoSalida" type="radio" value="VentaDirecta" id="tipo-venta" required aria-describedby="TipoSalida-error" /><span><strong>Venta directa</strong><small>Entrego al cliente final.</small></span></label>
+                <label class="choice"><input asp-for="TipoSalida" type="radio" value="Distribucion" id="tipo-distribucion" required aria-describedby="TipoSalida-error" /><span><strong>Distribución</strong><small>Surto a un punto de venta.</small></span></label>
+            </div><span asp-validation-for="TipoSalida" id="TipoSalida-error"></span></fieldset>
+            <div class="field"><label asp-for="ProductoTerminadoId" class="field-label">Producto terminado</label>
+                <select asp-for="ProductoTerminadoId" class="field-control" required aria-describedby="stock-help ProductoTerminadoId-error"><option value="">Selecciona un producto</option>
+                    @foreach (var producto in productos)
+                    {
+                        <option value="@producto.Id" data-name="@producto.Nombre" data-unit="@producto.UnidadMedida" data-stock="@producto.StockActual.ToString(System.Globalization.CultureInfo.InvariantCulture)">@producto.Nombre · @producto.StockActual.ToString("N3") @producto.UnidadMedida disponibles</option>
+                    }
+                </select><span class="field-help" id="stock-help" data-outgoing-stock>La disponibilidad se comprobará nuevamente al guardar.</span><span asp-validation-for="ProductoTerminadoId" id="ProductoTerminadoId-error"></span>
+                @if (productos.Count == 0) { <span class="field-help">No hay productos activos. <a asp-controller="Producto" asp-action="Create">Registrar un producto</a>.</span> }
+            </div>
+            <div class="field"><label asp-for="ClientePuntoVentaId" class="field-label">Cliente o punto de venta</label>
+                <select asp-for="ClientePuntoVentaId" class="field-control" required aria-describedby="cliente-help ClientePuntoVentaId-error"><option value="">Selecciona el destinatario</option>
+                    @foreach (var cliente in clientes) { <option value="@cliente.Id">@cliente.NombreTienda</option> }
+                </select><span class="field-help" id="cliente-help"><a asp-controller="ClientePuntoVenta" asp-action="Create" asp-route-productoId="@Model.ProductoTerminadoId" data-new-recipient>Registrar un nuevo destinatario</a></span><span asp-validation-for="ClientePuntoVentaId" id="ClientePuntoVentaId-error"></span>
+            </div>
+        </section>
+        <section class="form-section" aria-labelledby="salida-cantidad"><div class="section-heading"><h2 id="salida-cantidad">02 · Cantidad a entregar</h2></div>
+            <div class="field"><label asp-for="Cantidad" class="field-label">Cantidad</label><input asp-for="Cantidad" type="number" step="0.001" min="0.001" max="999999999999.999" inputmode="decimal" class="field-control" required aria-describedby="cantidad-help Cantidad-error" /><span class="field-help" id="cantidad-help">Usa la unidad indicada en el producto, con hasta tres decimales.</span><span asp-validation-for="Cantidad" id="Cantidad-error"></span></div>
+            <div class="field"><label asp-for="Observaciones" class="field-label">Observaciones <span class="optional">Opcional</span></label><textarea asp-for="Observaciones" class="field-control" maxlength="500" rows="3" placeholder="Referencia de entrega u otras indicaciones." aria-describedby="Observaciones-error"></textarea><span asp-validation-for="Observaciones" id="Observaciones-error"></span></div>
+        </section>
+        <div class="entry-preview"><span class="preview-label">Antes de registrar</span><p data-outgoing-preview aria-live="polite" aria-atomic="true">Selecciona el producto, el destinatario y la cantidad para revisar la salida.</p></div>
+        <div class="form-actions"><a class="button button-quiet" asp-action="Index">Cancelar</a><button class="button button-primary" type="submit">Confirmar y registrar salida</button></div>
+    </form>
+    <aside class="form-aside"><div class="aside-rule"></div><h2>Revisa antes de entregar</h2><p>La salida descuenta productos terminados del inventario general. No puede superar las existencias disponibles.</p><div class="aside-note"><h2>Un movimiento con historial</h2><p>La salida tendrá su propio folio y destinatario. Una vez registrada, no se puede editar ni eliminar desde esta pantalla.</p><p>Este registro controla cantidades; no genera cobros ni facturas.</p></div></aside>
+</div>

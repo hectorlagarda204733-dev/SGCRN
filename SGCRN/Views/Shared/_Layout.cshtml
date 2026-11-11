@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <script src="~/js/site.js" asp-append-version="true" defer></script>
     <script src="~/js/experience.js" asp-append-version="true" defer></script>
+    <script src="~/js/salidas.js" asp-append-version="true" defer></script>
 </head>
 <body data-section="@(section)" data-action="@action">
     <div class="navigation-progress" aria-hidden="true"></div>
@@ -28,6 +29,8 @@
                 <a class="@(section == "MateriaPrima" ? "is-active" : "")" aria-current="@(section == "MateriaPrima" ? "page" : null)" asp-controller="MateriaPrima" asp-action="Index">Materias primas</a>
                 <a class="@(section == "Producto" ? "is-active" : "")" aria-current="@(section == "Producto" ? "page" : null)" asp-controller="Producto" asp-action="Index">Productos</a>
                 <a class="@(section == "EntradaInventario" ? "is-active" : "")" aria-current="@(section == "EntradaInventario" ? "page" : null)" asp-controller="EntradaInventario" asp-action="Index">Entradas</a>
+                <a class="@(section == "SalidaDistribucion" ? "is-active" : "")" aria-current="@(section == "SalidaDistribucion" ? "page" : null)" asp-controller="SalidaDistribucion" asp-action="Index">Salidas</a>
+                <a class="@(section == "ClientePuntoVenta" ? "is-active" : "")" aria-current="@(section == "ClientePuntoVenta" ? "page" : null)" asp-controller="ClientePuntoVenta" asp-action="Index">Clientes</a>
             </nav>
             <span class="workspace-label">Catálogos e inventario</span>
         </div>

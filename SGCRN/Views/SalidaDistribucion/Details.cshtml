@@ -1,0 +1,11 @@
+@model SalidaDistribucion
+@{ ViewData["Title"] = $"Salida #{Model.Id:D4}"; }
+<nav class="breadcrumb-trail" aria-label="Ubicación"><a asp-action="Index">Salidas</a><span aria-hidden="true">/</span><span>Detalle</span></nav>
+<header class="page-heading"><div><span class="eyebrow">Movimiento registrado</span><h1>Salida #@Model.Id.ToString("D4")</h1></div><a class="button" asp-action="Create">Registrar otra salida</a></header>
+<div class="detail-layout">
+    <article class="detail-panel"><header class="receipt-header"><div><span class="eyebrow">@(Model.TipoSalida == TipoSalida.VentaDirecta ? "Venta directa" : "Distribución")</span><h2>@Model.ProductoTerminado.Nombre</h2></div><div><span class="stock-value">−@Model.Cantidad.ToString("N3")</span><span class="unit">@Model.UnidadMedida</span></div></header>
+        <dl class="detail-grid"><div><dt>Destinatario</dt><dd><a asp-controller="ClientePuntoVenta" asp-action="Details" asp-route-id="@Model.ClientePuntoVentaId">@Model.ClientePuntoVenta.NombreTienda</a></dd></div><div><dt>Fecha de salida</dt><dd>@Model.Fecha.ToString("dd MMM yyyy, HH:mm")</dd></div><div><dt>Cantidad entregada</dt><dd>@Model.Cantidad.ToString("N3") @Model.UnidadMedida</dd></div><div><dt>Folio</dt><dd>#@Model.Id.ToString("D4")</dd></div></dl>
+        <div class="receipt-notes"><h3>Observaciones</h3><p>@(string.IsNullOrWhiteSpace(Model.Observaciones) ? "Sin observaciones." : Model.Observaciones)</p></div>
+    </article>
+    <aside class="form-aside"><div class="aside-rule"></div><h2>Existencias descontadas</h2><p>La entrega quedó registrada en el historial. Puedes consultar las existencias actuales desde la ficha del producto.</p><a class="button" asp-controller="Producto" asp-action="Details" asp-route-id="@Model.ProductoTerminadoId">Ver producto</a></aside>
+</div>
