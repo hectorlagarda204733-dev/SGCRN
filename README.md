@@ -4,6 +4,8 @@ Aplicación ASP.NET Core 10 **MVC** para los casos de uso priorizados del Sistem
 
 ## Alcance
 
+- **Acceso de administrador:** inicio de sesión, protección de módulos y cierre de sesión. Cuenta inicial solicitada para la demostración: **admin / admin**.
+
 - **CU01, Gestionar Materias Primas:** alta, consulta/búsqueda, edición y baja lógica de insumos.
 - **CU02, Gestionar Productos Terminados:** alta, consulta/búsqueda, edición y baja lógica de productos.
 - **CU05, Registrar Entrada de Inventario:** compra de una materia prima **o** conclusión de producción de un producto, con cantidad positiva, costo y observaciones; cada entrada incrementa el stock del destino y conserva un folio consultable.
@@ -59,7 +61,7 @@ artículo. Las transiciones respetan la preferencia de movimiento reducido.
    .\scripts\Preparar-SGCRN.ps1
    ```
 
-   El script solicita la contraseña del administrador local. Crea la base independiente `SGCRN_Proyecto`, sus cinco tablas, ejemplos de ambos catálogos y un usuario exclusivo. La conexión real se guarda en **Secretos de usuario de .NET**, fuera de Git. No modifica bases anteriores. Si tu instalación tiene otra ruta:
+   El script solicita la contraseña del administrador local. Crea la base independiente `SGCRN_Proyecto`, sus seis tablas, ejemplos de ambos catálogos y un usuario exclusivo de MySQL. La conexión real se guarda en **Secretos de usuario de .NET**, fuera de Git. No modifica bases anteriores. Si tu instalación tiene otra ruta:
 
    ```powershell
    .\scripts\Preparar-SGCRN.ps1 -MySqlPath "C:\ruta\a\mysql.exe"
@@ -73,17 +75,44 @@ artículo. Las transiciones respetan la preferencia de movimiento reducido.
    dotnet run --project SGCRN/SGCRN.csproj
    ```
 
-5. Abre **http://localhost:5181**. También puedes iniciar el perfil `SGCRN` desde Visual Studio.
+5. Abre **http://localhost:5181** e inicia sesión con **admin / admin**. También puedes iniciar el perfil `SGCRN` desde Visual Studio.
 
 ### Configuración manual
 
-Ejecuta en MySQL Workbench los scripts de `database/migrations` en orden: `001_esquema.sql`, `002_datos_ejemplo.sql` y `003_salidas_distribucion.sql`. Se pueden repetir sin borrar datos. Si ya tienes la versión de entradas instalada, basta ejecutar `003_salidas_distribucion.sql` para agregar las dos tablas nuevas sin cambiar catálogos ni existencias. Configura un usuario con permisos SELECT, INSERT y UPDATE sobre `SGCRN_Proyecto` y registra su conexión local:
+Ejecuta en MySQL Workbench los scripts de `database/migrations` en orden: `001_esquema.sql`, `002_datos_ejemplo.sql`, `003_salidas_distribucion.sql` y `004_usuarios.sql`. Se pueden repetir sin borrar datos. Si ya tienes la versión de salidas instalada, aplica únicamente `004_usuarios.sql`. Configura un usuario con permisos SELECT, INSERT y UPDATE sobre `SGCRN_Proyecto` y registra su conexión local:
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:SGCRN" "Server=localhost;Port=3306;Database=SGCRN_Proyecto;User=TU_USUARIO;Password=TU_CLAVE" --project SGCRN/SGCRN.csproj
 ```
 
 El valor de `appsettings.json` es ilustrativo; no contiene una contraseña real. El perfil de desarrollo carga el secreto automáticamente.
+
+### Sesión de administrador
+
+Al arrancar se crea `admin` si todavía no existe, con contraseña inicial `admin`.
+Se almacena un hash con sal de `PasswordHasher<Usuario>` (PBKDF2), nunca la contraseña plana.
+Los reinicios conservan las credenciales existentes. La autorización global exige el rol
+`Administrador` para los módulos y la sesión protege también los archivos cargados.
+
+La cookie es HttpOnly, SameSite=Lax, no persistente y con vencimiento renovable de dos horas.
+Es Secure cuando el acceso es HTTPS. Login y logout usan antifalsificación; salir requiere POST.
+El retorno tras iniciar sesión acepta solo rutas locales. Hay un límite de 30 intentos de login
+por minuto y dirección de conexión; mediante el túnel local ese límite es compartido.
+Las páginas privadas y las imágenes cargadas se envían con `no-store`.
+
+### Túnel temporal de demostración
+
+Con la aplicación en `http://localhost:5181`, ejecuta Cloudflare Tunnel:
+
+```powershell
+cloudflared tunnel --url http://127.0.0.1:5181 --http-host-header localhost
+```
+
+Abre la dirección `https://….trycloudflare.com` que imprime el proceso e inicia sesión.
+El túnel y la aplicación deben continuar ejecutándose. La dirección cambia al crear otro
+túnel. El encabezado Host local permite conservar la lista de hosts de la aplicación.
+Solo se acepta el esquema reenviado por proxies locales de confianza para establecer
+correctamente las cookies Secure. Este túnel es el despliegue temporal de demostración.
 
 ## Estructura
 
@@ -96,10 +125,11 @@ SGCRN/
   Data/                   Repositorios y SGCRNDbContext (EF Core)
   Program.cs              Registro de servicios y configuración de rutas MVC
 database/
-  migrations/             Cinco tablas con restricciones y datos de ejemplo
+  migrations/             Seis tablas con restricciones y datos de ejemplo
 scripts/
   Preparar-SGCRN.ps1       Preparación de la base y conexión local
-  Verificar-SGCRN.py       Pruebas HTTP integradas de los tres casos
+  Verificar-SGCRN.py       Pruebas HTTP de acceso, catálogos y movimientos
+  Verificar-Navegador.cjs  Recorridos en Edge, imágenes y capturas adaptables
 ```
 
 La aplicación utiliza **Modelo-Vista-Controlador** con lógica de negocio separada del acceso a datos. `InventarioService` valida origen/destino y el repositorio registra la entrada y el incremento condicional de existencias en una sola transacción. El esquema exige cantidad positiva y destino exclusivo (materia prima **XOR** producto terminado).
@@ -110,7 +140,10 @@ Vista Razor → Controller → Service → Repository → SGCRNDbContext (EF Cor
 
 Las rutas principales son `/MateriaPrima`, `/Producto`, `/EntradaInventario`, `/SalidaDistribucion` y `/ClientePuntoVenta`. Los movimientos se registran en `/EntradaInventario/Create` y `/SalidaDistribucion/Create`.
 
-**Estado del prototipo:** el desarrollo local aún no implementa inicio de sesión ni control de roles. El diagrama de despliegue Ubuntu/Nginx/TLS representa el objetivo, no una instalación realizada; no exponer esta aplicación sin agregar autorización de administrador.
+**Alcance entregado:** acceso de administrador, CU01, CU02, CU05, CU06 y soporte básico
+de destinatarios (CU03). CU07, facturación y administración de múltiples usuarios no forman
+parte de esta versión. El despliegue Ubuntu/Nginx del UML sigue siendo un objetivo;
+la demostración utiliza Windows/MySQL y túnel temporal HTTPS.
 
 ## Comprobación
 
@@ -118,6 +151,31 @@ Las rutas principales son `/MateriaPrima`, `/Producto`, `/EntradaInventario`, `/
 dotnet build SGCRN.slnx
 ```
 
-Con la aplicación iniciada y Python 3 instalado, `python scripts/Verificar-SGCRN.py` comprueba los tres casos y deja registros de prueba identificables para inspeccionarlos.
+Con la aplicación iniciada y Python 3 instalado:
+
+```powershell
+python scripts/Verificar-SGCRN.py
+```
+
+Comprueba autenticación, catálogos, destinatarios, entradas, salidas, rechazos,
+reenvíos y concurrencia. `SGCRN_RESULTADOS` permite guardar el resultado JSON.
+Las variables `SGCRN_USUARIO` y `SGCRN_PASSWORD` permiten usar otras credenciales.
+Los registros temporales quedan identificados para su inspección y limpieza.
+
+Para los recorridos de navegador, instala Node.js y Microsoft Edge:
+
+```powershell
+Push-Location scripts
+npm ci
+Pop-Location
+$env:SGCRN_IMAGEN_PRUEBA = "C:\ruta\foto.png"
+$env:SGCRN_EVIDENCIAS = "artifacts\navegador"
+node scripts/Verificar-Navegador.cjs
+```
+
+Genera resultados y capturas en escritorio y móvil (1440, 900, 390 y 320 px).
+Las pruebas son de integración y navegador; no sustituyen pruebas unitarias ni una
+auditoría de seguridad. Las evidencias y documentación académica se guardan localmente
+en `docs/`, excluido de Git.
 
 Bootstrap se distribuye bajo licencia MIT; consulta `SGCRN/wwwroot/lib/bootstrap/LICENSE`.

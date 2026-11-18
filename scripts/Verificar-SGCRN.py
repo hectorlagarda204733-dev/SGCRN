@@ -1,4 +1,4 @@
-"""Pruebas HTTP de CU01, CU02 y CU05; Python 3 sin dependencias externas.
+"""Pruebas HTTP de acceso, CU01, CU02, CU03 básico, CU05 y CU06.
 
 Requiere aplicación y MySQL configurados. Los registros generados se identifican
 con el prefijo VERIFICACION_SGCRN_ para facilitar su limpieza manual.
@@ -11,6 +11,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+import os
+import json
+import concurrent.futures
+from datetime import datetime
+from pathlib import Path
 
 base = (sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5181").rstrip("/")
 browser = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -18,6 +23,13 @@ suffix = uuid.uuid4().hex[:12]
 product_name = "VERIFICACION_SGCRN_PRODUCTO_" + suffix
 material_name = "VERIFICACION_SGCRN_MATERIA_" + suffix
 checks = 0
+results = []
+manifest = {"prefijo": suffix, "base": base, "inicio": datetime.now().isoformat(), "registros": {}, "pruebas": results}
+
+
+def save_results():
+    if os.environ.get("SGCRN_RESULTADOS"):
+        Path(os.environ["SGCRN_RESULTADOS"]).write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def request(path, data=None):
@@ -32,6 +44,8 @@ def request(path, data=None):
 
 def check(condition, description):
     global checks
+    results.append({"caso": description, "resultado": "APROBADO" if condition else "FALLIDO"})
+    save_results()
     if not condition:
         raise AssertionError(description)
     checks += 1
@@ -43,8 +57,11 @@ def post(path, fields):
     assert status == 200, (path, status)
     token = re.search(r'name="__RequestVerificationToken"[^>]*value="([^"]+)"', page)
     assert token, "Falta el token antifalsificación"
-    action = re.search(r'<form[^>]*action="([^"]+)"', page)
-    assert action and action.group(1) == path, "El formulario MVC debe conservar la ruta y el identificador"
+    actions = re.findall(r'<form[^>]*action="([^"]+)"', page)
+    assert path in actions, "El formulario MVC debe conservar la ruta y el identificador"
+    reference = re.search(r'name="ReferenciaRegistro"[^>]*value="([^"]+)"', page)
+    if reference and "ReferenciaRegistro" not in fields:
+        fields = {**fields, "ReferenciaRegistro": reference.group(1)}
     return request(path, {**fields, "__RequestVerificationToken": token.group(1)})
 
 
@@ -76,6 +93,19 @@ def stock_is(page, value):
     return re.search(r"Existencias actuales.*?</dt>\s*<dd[^>]*>" + number, page, re.S) is not None
 
 
+for route in ("/", "/Producto/Create", "/MateriaPrima", "/EntradaInventario", "/SalidaDistribucion", "/ClientePuntoVenta", "/uploads/productos/no-existe.png"):
+    status, page, url = request(route)
+    check(status == 200 and "/Cuenta/Login" in url and "Entrar al sistema" in page, "Acceso anónimo redirigido: " + route)
+status, _, _ = request("/Cuenta/Login", {"Usuario": "admin", "Password": "admin"})
+check(status == 400, "Login sin token antifalsificación rechazado")
+status, page, _ = post("/Cuenta/Login", {"Usuario": "", "Password": ""})
+check(status == 200 and "Escribe tu usuario" in page and "Escribe tu contraseña" in page, "Login valida campos obligatorios")
+status, page, _ = post("/Cuenta/Login", {"Usuario": "admin", "Password": "incorrecta"})
+check(status == 200 and "Usuario o contraseña incorrectos" in page, "Contraseña incorrecta rechazada")
+status, page, _ = post("/Cuenta/Login", {"Usuario": "no-existe", "Password": "admin"})
+check(status == 200 and "Usuario o contraseña incorrectos" in page, "Usuario inexistente recibe error genérico")
+status, page, url = post("/Cuenta/Login", {"Usuario": os.getenv("SGCRN_USUARIO", "admin"), "Password": os.getenv("SGCRN_PASSWORD", "admin"), "ReturnUrl": "https://example.com/"})
+check(status == 200 and urllib.parse.urlparse(url).path in ("/", "/Producto") and "Administrador" in page, "Login admin válido y retorno externo ignorado")
 status, page, _ = request("/")
 check(status == 200 and "Catálogo de productos" in page, "Inicio MVC: catálogo de productos")
 status, page, _ = request("/MateriaPrima")
@@ -102,6 +132,8 @@ match = re.search(r'href="/Producto/Details/(\d+)"', page)
 check(status == 200 and product_name in page and match is not None and 'data-result-count="1"' in page,
       "CU02: búsqueda y filtro de activos")
 product_id = match.group(1)
+manifest["registros"]["producto"] = {"id": product_id, "nombre": product_name}
+save_results()
 status, page, _ = request("/Producto/Details/" + product_id)
 check(status == 200 and "Activo" in page and stock_is(page, "0,000"),
       "CU02: ignora StockActual y Activo enviados por el navegador")
@@ -131,6 +163,8 @@ match = re.search(r'href="/MateriaPrima/Details/(\d+)"', page)
 check(status == 200 and material_name in page and match is not None and 'data-result-count="1"' in page,
       "CU01: búsqueda y filtro de activos")
 material_id = match.group(1)
+manifest["registros"]["materia"] = {"id": material_id, "nombre": material_name}
+save_results()
 status, page, _ = request("/MateriaPrima/Details/" + material_id)
 check(status == 200 and "Activa" in page and stock_is(page, "0,000"),
       "CU01: stock inicial cero y estado activo pese a POST manipulado")
@@ -187,6 +221,77 @@ status, page, _ = post(edit_product, product_fields(PrecioSugerido="60.50", Stoc
 status, page, _ = request("/Producto/Details/" + product_id)
 check(status == 200 and stock_is(page, "3,125"), "CU02: editar el catálogo preserva stock de CU05")
 
+# CU03 básico y CU06: destinatarios, atomicidad observable y concurrencia.
+client_name = "VERIFICACION_SGCRN_CLIENTE_" + suffix
+status, page, url = post("/ClientePuntoVenta/Create", {"NombreTienda": client_name, "Contacto": "Contacto de prueba", "Direccion": "Dirección de prueba"})
+client_id = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)["clienteId"][0]
+manifest["registros"]["cliente"] = {"id": client_id, "nombre": client_name}
+save_results()
+check(status == 200 and "/SalidaDistribucion/Create" in url and f'value="{client_id}" selected="selected"' in page, "CU03: alta y preselección del destinatario")
+status, page, _ = post("/ClientePuntoVenta/Create", {"NombreTienda": client_name})
+check("Ya existe un cliente" in page, "CU03: nombre duplicado rechazado")
+status, page, _ = post("/ClientePuntoVenta/Create", {"NombreTienda": " "})
+check("obligatorio" in page, "CU03: nombre obligatorio")
+status, page, _ = request("/ClientePuntoVenta?buscar=" + client_name)
+check(status == 200 and client_name in page, "CU03: búsqueda del destinatario")
+status, page, _ = request("/ClientePuntoVenta/Details/" + client_id)
+check(status == 200 and "Contacto de prueba" in page, "CU03: consulta de contacto y dirección")
+outgoing = {"TipoSalida": "VentaDirecta", "ProductoTerminadoId": product_id, "ClientePuntoVentaId": client_id, "Cantidad": "1", "Observaciones": "Entrega de prueba"}
+status, _, _ = request("/SalidaDistribucion/Create", outgoing)
+check(status == 400, "CU06: POST sin token rechazado")
+for fields, label in [
+    ({"Cantidad": "0"}, "cantidad cero"), ({"Cantidad": "-1"}, "cantidad negativa"),
+    ({"Cantidad": "1.0001"}, "más de tres decimales"), ({"Cantidad": "4"}, "existencias insuficientes"),
+    ({"ClientePuntoVentaId": "9223372036854775807"}, "destinatario inexistente"),
+    ({"ProductoTerminadoId": "9223372036854775807"}, "producto inexistente"),
+    ({"TipoSalida": "999"}, "motivo inexistente"), ({"ReferenciaRegistro": "no-guid"}, "referencia inválida"),
+    ({"ClientePuntoVentaId": ""}, "destinatario obligatorio")
+]:
+    status, page, url = post("/SalidaDistribucion/Create", {**outgoing, **fields})
+    check(status == 200 and "/Details/" not in url and "validation-summary-errors" in page, "CU06: rechaza " + label)
+status, page, _ = request("/Producto/Details/" + product_id)
+check(stock_is(page, "3,125"), "CU06: rechazos conservan existencias")
+reference = str(uuid.uuid4())
+status, page, url = post("/SalidaDistribucion/Create", {**outgoing, "ReferenciaRegistro": reference})
+outgoing_id = url.rsplit("/", 1)[-1]
+check("/SalidaDistribucion/Details/" in url and client_name in page, "CU06: venta directa con folio y destinatario")
+status, page, _ = request("/Producto/Details/" + product_id)
+check(stock_is(page, "2,125"), "CU06: venta descuenta exactamente una unidad")
+status, page, url = post("/SalidaDistribucion/Create", {**outgoing, "ReferenciaRegistro": reference})
+check(url.endswith("/" + outgoing_id), "CU06: reenvío devuelve el mismo folio")
+status, page, _ = post("/SalidaDistribucion/Create", {**outgoing, "ReferenciaRegistro": reference, "Cantidad": "0.5"})
+check("ya registró una salida distinta" in page, "CU06: referencia no admite otra entrega")
+
+def prepare_outgoing(amount, reference=None):
+    session = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+    def send(path, fields=None):
+        payload = urllib.parse.urlencode(fields).encode() if fields is not None else None
+        with session.open(base + path, payload, timeout=30) as response:
+            return html.unescape(response.read().decode()), response.url
+    page, _ = send("/Cuenta/Login")
+    token = re.search(r'name="__RequestVerificationToken"[^>]*value="([^"]+)"', page).group(1)
+    send("/Cuenta/Login", {"Usuario": os.getenv("SGCRN_USUARIO", "admin"), "Password": os.getenv("SGCRN_PASSWORD", "admin"), "__RequestVerificationToken": token})
+    page, _ = send("/SalidaDistribucion/Create")
+    token = re.search(r'name="__RequestVerificationToken"[^>]*value="([^"]+)"', page).group(1)
+    ref = reference or re.search(r'name="ReferenciaRegistro"[^>]*value="([^"]+)"', page).group(1)
+    return lambda: send("/SalidaDistribucion/Create", {**outgoing, "TipoSalida": "Distribucion", "Cantidad": amount, "ReferenciaRegistro": ref, "__RequestVerificationToken": token})
+
+jobs = [prepare_outgoing("2"), prepare_outgoing("2")]
+with concurrent.futures.ThreadPoolExecutor(2) as pool:
+    answers = list(pool.map(lambda job: job(), jobs))
+check(sum("/Details/" in url for _, url in answers) == 1, "CU06: salidas simultáneas solo confirman la que cabe")
+status, page, _ = request("/Producto/Details/" + product_id)
+check(stock_is(page, "0,125"), "CU06: concurrencia preserva saldo exacto")
+reference = str(uuid.uuid4())
+jobs = [prepare_outgoing("0.125", reference), prepare_outgoing("0.125", reference)]
+with concurrent.futures.ThreadPoolExecutor(2) as pool:
+    answers = list(pool.map(lambda job: job(), jobs))
+check(all("/Details/" in url for _, url in answers) and answers[0][1] == answers[1][1], "CU06: duplicados simultáneos devuelven un solo folio")
+status, page, _ = request("/Producto/Details/" + product_id)
+check(stock_is(page, "0,000"), "CU06: entrega exacta agota stock sin negativos")
+status, page, _ = request("/SalidaDistribucion")
+check(product_name in page and client_name in page, "CU06: historial muestra producto y destinatario")
+
 delete_product = "/Producto/Delete/" + product_id
 status, _, _ = request(delete_product, {})
 check(status == 400, "CU02: baja sin token rechazada")
@@ -198,6 +303,10 @@ status, page, _ = post("/EntradaInventario/Create", entry_fields(
     TipoOrigen="Produccion", MateriaPrimaId="", ProductoTerminadoId=product_id))
 check(status == 200 and "producto no existe o está inactivo" in page,
       "CU05: no ingresa stock a producto inactivo")
+status, page, _ = post("/SalidaDistribucion/Create", outgoing)
+check("Selecciona un producto activo" in page, "CU06: no entrega producto inactivo")
+status, page, _ = request("/SalidaDistribucion/Details/" + outgoing_id)
+check(status == 200 and product_name in page, "CU06: baja conserva historial")
 status, page, _ = request("/EntradaInventario/Details/" + entry_product_id)
 check(status == 200 and product_name in page, "CU05: baja no destruye entradas previas")
 delete_material = "/MateriaPrima/Delete/" + material_id
@@ -210,9 +319,23 @@ status, page, _ = request("/EntradaInventario/Details/" + entry_material_id)
 check(status == 200 and material_name in page, "CU05: historial conservado después de baja")
 for route in ("/MateriaPrima/Details/9223372036854775807",
               "/Producto/Details/9223372036854775807",
-              "/EntradaInventario/Details/9223372036854775807"):
+              "/EntradaInventario/Details/9223372036854775807",
+              "/SalidaDistribucion/Details/9223372036854775807",
+              "/ClientePuntoVenta/Details/9223372036854775807"):
     status, _, _ = request(route)
     check(status == 404, "Identificador inexistente devuelve 404: " + route)
 
+status, _, _ = request("/Cuenta/Logout", {})
+check(status == 400, "Logout sin token rechazado")
+status, page, _ = request("/")
+token = re.search(r'name="__RequestVerificationToken"[^>]*value="([^"]+)"', page).group(1)
+status, page, url = request("/Cuenta/Logout", {"__RequestVerificationToken": token})
+check("/Cuenta/Login" in url and "Entrar al sistema" in page, "Logout elimina sesión")
+status, page, url = request("/SalidaDistribucion")
+check("/Cuenta/Login" in url, "Módulos vuelven a exigir sesión después de salir")
+status, page, url = post("/Cuenta/Login", {"Usuario": os.getenv("SGCRN_USUARIO", "admin"), "Password": os.getenv("SGCRN_PASSWORD", "admin"), "ReturnUrl": "/EntradaInventario"})
+check(urllib.parse.urlparse(url).path == "/EntradaInventario", "Login recupera destino local solicitado")
+manifest["fin"] = datetime.now().isoformat()
+save_results()
 print(f"\n{checks} verificaciones aprobadas. Registros: {product_name} (Id {product_id}), "
       f"{material_name} (Id {material_id}); entradas {entry_material_id}, {entry_product_id}.")

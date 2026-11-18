@@ -1,4 +1,24 @@
 /* SGCRN: a quiet, work-focused interface. Spacing follows a 4px rhythm. */
+.session-menu { display: flex; align-items: center; gap: 12px; margin-left: auto; flex-shrink: 0; }
+.session-menu > span { font-size: 13px; font-weight: 600; }
+.session-menu small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
+.session-menu .button { padding: 8px 12px; }
+.login-layout { min-height: 65vh; display: grid; grid-template-columns: 1fr 440px; align-items: center; gap: 80px; max-width: 1080px; margin: 24px auto; }
+.login-intro h1 { font-size: clamp(32px, 4vw, 52px); line-height: 1.15; margin: 20px 0; }
+.login-intro p { max-width: 400px; color: var(--muted); font-size: 17px; line-height: 1.8; }
+.login-panel { background: var(--paper); border: 1px solid var(--line); padding: 40px; }
+.login-panel h2 { margin: 12px 0; font-size: 26px; }
+.login-panel .field { margin-top: 24px; }
+.login-submit { width: 100%; justify-content: space-between; margin-top: 28px; }
+@media (max-width: 1100px) { .app-header .app-header-inner { gap: 24px; } .main-nav { gap: 18px; } }
+@media (max-width: 760px) {
+    .login-layout { grid-template-columns: 1fr; gap: 24px; margin: 0; }
+    .login-intro h1 { font-size: 32px; }
+    .login-intro .aside-rule, .login-intro > .field-help { display: none; }
+    .login-panel { padding: 24px; }
+    .session-menu { order: 0; }
+    .app-header .main-nav { order: 1; }
+}
 @view-transition { navigation: auto; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 160ms; }
 .back-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; font-weight: 600; text-decoration: none; }
@@ -7,7 +27,7 @@
 .navigation-progress { position: fixed; z-index: 1000; inset: 0 0 auto; height: 3px; background: var(--green); transform: scaleX(0); transform-origin: left; opacity: 0; }
 .is-navigating .navigation-progress { opacity: 1; animation: navigation-progress 6s ease-out forwards; }
 @keyframes navigation-progress { from { transform: scaleX(.1); } to { transform: scaleX(.9); } }
-.image-dropzone { border: 1px dashed var(--line-strong); padding: 24px; display: grid; gap: 10px; background: var(--paper); transition: background 160ms, border-color 160ms; }
+.image-dropzone { border: 1px dashed var(--line-strong); padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; background: var(--paper); transition: background 160ms, border-color 160ms; overflow-wrap: anywhere; }
 .image-dropzone.is-dragging { background: var(--green-wash); border-color: var(--green); outline: 2px solid var(--green); }
 .image-dropzone input { max-width: 100%; font-size: 13px; }
 .image-dropzone input::file-selector-button { padding: 9px 12px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); border-radius: 3px; margin-right: 12px; cursor: pointer; }

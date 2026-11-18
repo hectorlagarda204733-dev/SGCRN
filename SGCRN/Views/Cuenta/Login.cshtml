@@ -1,0 +1,31 @@
+@model LoginInput
+@{ ViewData["Title"] = "Iniciar sesión"; }
+<div class="login-layout">
+    <section class="login-intro">
+        <span class="eyebrow">Catálogos e inventario</span>
+        <h1>Todo listo para<br />un nuevo día.</h1>
+        <p>Administra tus productos, registra lo que recibes y lleva el control de cada entrega.</p>
+        <div class="aside-rule"></div>
+        <span class="field-help">Sistema de Gestión y Catálogo de Remedios Naturales</span>
+    </section>
+    <section class="login-panel" aria-labelledby="login-title">
+        <span class="eyebrow">Acceso al sistema</span>
+        <h2 id="login-title">Iniciar sesión</h2>
+        <p class="page-description">Ingresa con tu cuenta de administrador.</p>
+        <partial name="_FormFeedback" />
+        <form asp-action="Login" method="post">
+            <input asp-for="ReturnUrl" type="hidden" />
+            <div class="field">
+                <label asp-for="Usuario" class="field-label">Usuario</label>
+                <input asp-for="Usuario" class="field-control" autocomplete="username" maxlength="50" required autofocus aria-describedby="Usuario-error" />
+                <span asp-validation-for="Usuario" id="Usuario-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Password" class="field-label">Contraseña</label>
+                <input asp-for="Password" class="field-control" autocomplete="current-password" maxlength="200" required aria-describedby="Password-error" />
+                <span asp-validation-for="Password" id="Password-error"></span>
+            </div>
+            <button class="button button-primary login-submit" type="submit">Entrar al sistema <span aria-hidden="true">→</span></button>
+        </form>
+    </section>
+</div>

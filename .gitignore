@@ -11,3 +11,4 @@ artifacts/
 docs/
 database/consultas_capturas.sql
 SGCRN/wwwroot/uploads/
+**/node_modules/

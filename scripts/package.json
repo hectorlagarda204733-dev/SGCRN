@@ -1,0 +1,8 @@
+{
+  "name": "sgcrn-verificacion",
+  "private": true,
+  "description": "Recorridos de navegador y evidencias locales de SGCRN",
+  "devDependencies": {
+    "playwright": "1.65.0"
+  }
+}

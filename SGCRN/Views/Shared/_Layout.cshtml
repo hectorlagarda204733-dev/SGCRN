@@ -25,6 +25,8 @@
                 <span class="brand-mark" aria-hidden="true"><partial name="_Icon" model='@("leaf")' /></span>
                 <span>SGCRN<small>Remedios naturales</small></span>
             </a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
             <nav class="main-nav" aria-label="Navegación principal">
                 <a class="@(section == "MateriaPrima" ? "is-active" : "")" aria-current="@(section == "MateriaPrima" ? "page" : null)" asp-controller="MateriaPrima" asp-action="Index">Materias primas</a>
                 <a class="@(section == "Producto" ? "is-active" : "")" aria-current="@(section == "Producto" ? "page" : null)" asp-controller="Producto" asp-action="Index">Productos</a>
@@ -32,11 +34,15 @@
                 <a class="@(section == "SalidaDistribucion" ? "is-active" : "")" aria-current="@(section == "SalidaDistribucion" ? "page" : null)" asp-controller="SalidaDistribucion" asp-action="Index">Salidas</a>
                 <a class="@(section == "ClientePuntoVenta" ? "is-active" : "")" aria-current="@(section == "ClientePuntoVenta" ? "page" : null)" asp-controller="ClientePuntoVenta" asp-action="Index">Clientes</a>
             </nav>
-            <span class="workspace-label">Catálogos e inventario</span>
+            <form class="session-menu" asp-controller="Cuenta" asp-action="Logout" method="post">
+                <span>@User.Identity.Name <small>Administrador</small></span>
+                <button class="button button-quiet" type="submit">Salir</button>
+            </form>
+            }
         </div>
     </header>
     <main id="contenido" class="workspace" tabindex="-1">
-        @if (action != "Index")
+        @if (action != "Index" && section != "Cuenta" && User.Identity?.IsAuthenticated == true)
         {
             <a class="back-link" asp-controller="@(section == "Home" ? "Producto" : section)" asp-action="Index" data-return-link><partial name="_Icon" model='@("back")' /><span>Volver al listado</span></a>
         }

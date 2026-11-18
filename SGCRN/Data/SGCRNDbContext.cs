@@ -10,9 +10,19 @@ public sealed class SGCRNDbContext(DbContextOptions<SGCRNDbContext> options) : D
     public DbSet<EntradaInventario> EntradasInventario => Set<EntradaInventario>();
     public DbSet<ClientePuntoVenta> ClientesPuntosVenta => Set<ClientePuntoVenta>();
     public DbSet<SalidaDistribucion> SalidasDistribucion => Set<SalidaDistribucion>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var usuarios = modelBuilder.Entity<Usuario>();
+        usuarios.ToTable("Usuarios");
+        usuarios.HasKey(u => u.Id);
+        usuarios.Property(u => u.Id).ValueGeneratedOnAdd();
+        usuarios.Property(u => u.NombreUsuario).HasMaxLength(50).IsRequired();
+        usuarios.HasIndex(u => u.NombreUsuario).IsUnique();
+        usuarios.Property(u => u.PasswordHash).HasMaxLength(500).IsRequired();
+        usuarios.Property(u => u.Rol).HasMaxLength(30).IsRequired();
+
         var productos = modelBuilder.Entity<ProductoTerminado>();
         productos.ToTable("ProductosTerminados");
         productos.HasKey(p => p.Id);
